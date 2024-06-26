@@ -7,7 +7,7 @@ a breakout game for giant mainframes, and everything else
   
     
   
-A fun breakout game, written in Go and javascript. I chose these two languages because they are also availabe on z/OS. 
+A fun breakout game, written in Go and javascript. I chose these two languages because they are also availabe on z/OS. However, this game runs pretty much on everything with a live heartbeat.   
   
 R to resume  
 Q to quit the game  
