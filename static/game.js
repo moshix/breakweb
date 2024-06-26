@@ -19,7 +19,8 @@ const version = "0.9.0";
 
 
 // Developer-defined ball speed
-const initialBallSpeed = 4;
+const initialBallSpeed = 2;
+let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -30,7 +31,6 @@ let paddleX = (canvas.width - paddleWidth) / 2;
 
 const ballRadius = 10;
 let x, y, dx, dy;
-let ballSpeed = initialBallSpeed;
 resetBall();
 
 const brickRowCount = 5;
@@ -60,6 +60,10 @@ let lives = 3;
 let message = "";
 let showMessage = false;
 
+let speedIncreases = 0;
+let speedDecreases = 0;
+const maxSpeedAdjustments = 3;
+
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
@@ -72,6 +76,10 @@ function keyDownHandler(e) {
         gameOver(true);
     } else if (e.key == "R" || e.key == "r") {
         restartGame();
+    } else if (e.key == "+" || e.key == "=") {
+        increaseSpeed();
+    } else if (e.key == "-" || e.key == "_") {
+        decreaseSpeed();
     } else if (!started) {
         started = true;
         draw();
@@ -84,6 +92,28 @@ function keyUpHandler(e) {
     } else if (e.key == "Left" || e.key == "ArrowLeft") {
         leftPressed = false;
     }
+}
+
+function increaseSpeed() {
+    if (speedIncreases < maxSpeedAdjustments) {
+        ballSpeed *= 1.1;
+        speedIncreases++;
+        adjustBallSpeed();
+    }
+}
+
+function decreaseSpeed() {
+    if (speedDecreases < maxSpeedAdjustments) {
+        ballSpeed /= 1.1;
+        speedDecreases++;
+        adjustBallSpeed();
+    }
+}
+
+function adjustBallSpeed() {
+    let angle = Math.atan2(dy, dx);
+    dx = Math.sign(dx) * Math.abs(ballSpeed * Math.cos(angle));
+    dy = Math.sign(dy) * Math.abs(ballSpeed * Math.sin(angle));
 }
 
 function collisionDetection() {
@@ -157,6 +187,7 @@ function drawScore() {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#FFFFFF";
     ctx.fillText("Score: " + score, 8, 20);
+    ctx.fillText("Speed: " + ballSpeed.toFixed(2), 8, 40); // Show ball speed
 }
 
 function drawLives() {
@@ -198,6 +229,9 @@ function drawControls() {
     ctx.fillText("Q to quit", canvas.width / 2 - 50, canvas.height / 2);
     ctx.fillStyle = "yellow";
     ctx.fillText("R to restart", canvas.width / 2 - 60, canvas.height / 2 + 30);
+    ctx.fillStyle = "green";
+    ctx.fillText("+ to speed up", canvas.width / 2 - 60, canvas.height / 2 + 60);
+    ctx.fillText("- to slow down", canvas.width / 2 - 70, canvas.height / 2 + 90);
 }
 
 function draw() {
@@ -296,6 +330,8 @@ function restartGame() {
     leftPressed = false;
     started = false;
     ballSpeed = initialBallSpeed; // Reset ball speed
+    speedIncreases = 0;
+    speedDecreases = 0;
     createBricks();
     resetBall();
     drawControls();
@@ -306,4 +342,5 @@ document.getElementById('version').innerText = 'Version: ' + version;
 
 // Show controls before starting the game
 drawControls();
+
 
