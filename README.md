@@ -27,6 +27,8 @@ Q to quit the game
 '+ to accelerate the ball'  
 P to pause and unpause the game  
 
-  
+
+
+        
   
 June 25 2024, St. Moritz  
