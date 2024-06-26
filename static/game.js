@@ -17,7 +17,6 @@
 // Define version number
 const version = "0.9.0";
 
-
 // Developer-defined ball speed
 const initialBallSpeed = 2;
 let ballSpeed = initialBallSpeed;
@@ -186,8 +185,7 @@ function getColorForRow(row) {
 function drawScore() {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText("Score: " + score, 8, 20);
-    ctx.fillText("Speed: " + ballSpeed.toFixed(2), 8, 40); // Show ball speed
+    ctx.fillText("Score: " + score + "  Speed: " + ballSpeed.toFixed(2), 8, 20); // Show ball speed next to score
 }
 
 function drawLives() {
@@ -229,7 +227,7 @@ function drawControls() {
     ctx.fillText("Q to quit", canvas.width / 2 - 50, canvas.height / 2);
     ctx.fillStyle = "yellow";
     ctx.fillText("R to restart", canvas.width / 2 - 60, canvas.height / 2 + 30);
-    ctx.fillStyle = "green";
+    ctx.fillStyle = "cyan"; // Change color from green to cyan
     ctx.fillText("+ to speed up", canvas.width / 2 - 60, canvas.height / 2 + 60);
     ctx.fillText("- to slow down", canvas.width / 2 - 70, canvas.height / 2 + 90);
 }
@@ -342,5 +340,6 @@ document.getElementById('version').innerText = 'Version: ' + version;
 
 // Show controls before starting the game
 drawControls();
+
 
 
