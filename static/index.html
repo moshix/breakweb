@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZO/s Breakweb</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000;
+            color: #FFF;
+            font-family: Arial, sans-serif;
+        }
+        #title {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #version {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            display: block;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">ZO/s Breakweb</div>
+    <div id="version"></div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script src="/static/game.js"></script>
+    <script>
+        // Set the version number dynamically from the game.js script
+        document.getElementById('version').innerText = 'Version: ' + version;
+    </script>
+</body>
+</html>
+
