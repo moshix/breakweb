@@ -13,9 +13,11 @@
 // v 0.7 logic refinements
 // v 0.8 rip out Pause
 // v 0.9 make ball speed developer defined
+// v 1.0 pause/unpause the game
+
 
 // Define version number
-const version = "0.9.0";
+const version = "1.0.0";
 
 // Developer-defined ball speed
 const initialBallSpeed = 2;
@@ -54,6 +56,7 @@ createBricks();
 let rightPressed = false;
 let leftPressed = false;
 let started = false;
+let paused = false;
 let score = 0;
 let lives = 3;
 let message = "";
@@ -79,6 +82,8 @@ function keyDownHandler(e) {
         increaseSpeed();
     } else if (e.key == "-" || e.key == "_") {
         decreaseSpeed();
+    } else if (e.key == "P" || e.key == "p") {
+        togglePause();
     } else if (!started) {
         started = true;
         draw();
@@ -90,6 +95,17 @@ function keyUpHandler(e) {
         rightPressed = false;
     } else if (e.key == "Left" || e.key == "ArrowLeft") {
         leftPressed = false;
+    }
+}
+
+function togglePause() {
+    paused = !paused;
+    if (!paused) {
+        draw();
+    } else {
+        ctx.font = "48px Arial";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText("PAUSED", canvas.width / 2 - 100, canvas.height / 2);
     }
 }
 
@@ -230,9 +246,15 @@ function drawControls() {
     ctx.fillStyle = "cyan"; // Change color from green to cyan
     ctx.fillText("+ to speed up", canvas.width / 2 - 60, canvas.height / 2 + 60);
     ctx.fillText("- to slow down", canvas.width / 2 - 70, canvas.height / 2 + 90);
+    ctx.fillStyle = "white";
+    ctx.fillText("P to pause/resume", canvas.width / 2 - 80, canvas.height / 2 + 120);
 }
 
 function draw() {
+    if (paused) {
+        return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawWalls(); // Draw the walls
     drawBricks();
@@ -330,6 +352,7 @@ function restartGame() {
     ballSpeed = initialBallSpeed; // Reset ball speed
     speedIncreases = 0;
     speedDecreases = 0;
+    paused = false;
     createBricks();
     resetBall();
     drawControls();
