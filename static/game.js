@@ -12,10 +12,14 @@
 // v 0.6 score keeping
 // v 0.7 logic refinements
 // v 0.8 rip out Pause
-
+// v 0.9 make ball speed developer defined
 
 // Define version number
-const version = "0.8.0";
+const version = "0.9.0";
+
+
+// Developer-defined ball speed
+const initialBallSpeed = 4;
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -26,7 +30,7 @@ let paddleX = (canvas.width - paddleWidth) / 2;
 
 const ballRadius = 10;
 let x, y, dx, dy;
-let ballSpeed = 2;
+let ballSpeed = initialBallSpeed;
 resetBall();
 
 const brickRowCount = 5;
@@ -291,10 +295,14 @@ function restartGame() {
     rightPressed = false;
     leftPressed = false;
     started = false;
+    ballSpeed = initialBallSpeed; // Reset ball speed
     createBricks();
     resetBall();
     drawControls();
 }
+
+// Set the version number dynamically
+document.getElementById('version').innerText = 'Version: ' + version;
 
 // Show controls before starting the game
 drawControls();
