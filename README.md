@@ -11,7 +11,7 @@ A fun breakout game, written in Go and javascript. I chose these two languages b
   
 R to resume  
 Q to quit the game  
-'- to slow down the ball'
+'- to slow down the ball'  
 '+ to accelerate the ball'
   
 June 2024, St. Moritz  
