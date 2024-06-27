@@ -15,8 +15,8 @@
 // v 0.8 rip out Pause
 // v 0.9 variable ball speed
 // v 1.0 Pause/unpause and better logging in webserver
+// v 1.1 Boss key
 */
-
 package main
 
 import (
@@ -100,3 +100,4 @@ func main() {
 		multiLog.Fatalf("Server failed to start: %v", err)
 	}
 }
+
