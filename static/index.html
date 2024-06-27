@@ -1,44 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZO/s Breakweb</title>
-    <style>
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #000;
-            color: #FFF;
-            font-family: Arial, sans-serif;
-        }
-        #title {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        #version {
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        canvas {
-            display: block;
-            background: #000;
-        }
-    </style>
-</head>
-<body>
-    <div id="title">ZO/s Breakweb</div>
-    <div id="version"></div>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <script src="/static/game.js"></script>
-    <script>
-        // Set the version number dynamically from the game.js script
-        document.getElementById('version').innerText = 'Version: ' + version;
-    </script>
-</body>
-</html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>z/OS Breakweb</title>
+        <style>
+            body {
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                background-color: #000;
+                color: #fff;
+                font-family: Arial, sans-serif;
+                position: relative;
+            }
+            #title {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+            #version {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+            canvas {
+                display: block;
+                background: #000;
+            }
+            #bossScreen {
+                display: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #282c34;
+                color: #abb2bf;
+                font-family: "Courier New", Courier, monospace;
+                overflow: auto;
+            }
+            #bossScreen .header {
+                background-color: #21252b;
+                color: #abb2bf;
+                padding: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid #181a1f;
+            }
+            #bossScreen .header .title {
+                font-size: 16px;
+            }
+            #bossScreen .header .buttons {
+                display: flex;
+                align-items: center;
+            }
+            #bossScreen .header .buttons .button {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 8px;
+            }
+            #bossScreen .header .buttons .close {
+                background-color: #ff5f56;
+            }
+            #bossScreen .header .buttons .minimize {
+                background-color: #ffbd2e;
+            }
+            #bossScreen .header .buttons .maximize {
+                background-color: #27c93f;
+            }
+            #bossScreen .code {
+                padding: 20px;
+                white-space: pre;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="title">z/OS Breakweb</div>
+        <div id="version">Version:</div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="bossScreen">
+            <div class="header">
+                <div class="buttons">
+                    <div class="button close"></div>
+                    <div class="button minimize"></div>
+                    <div class="button maximize"></div>
+                </div>
+                <div class="title">boring_code.js - Visual Studio Code</div>
+            </div>
+            <div class="code">
+                <pre>
+// Some boring code to show on the boss screen
+function calculateFactorial(n) {
+    if (n === 0) {
+        return 1;
+    }
+    return n * calculateFactorial(n - 1);
+}
 
+function isPrime(num) {
+    if (num <= 1) return false;
+    if (num <= 3) return true;
+    if (num % 2 === 0 || num % 3 === 0) return false;
+    for (let i = 5; i * i <= num; i += 6) {
+        if (num % i === 0 || num % (i + 2) === 0) return false;
+    }
+    return true;
+}
+
+for (let i = 0; i < 1000; i++) {
+    console.log(calculateFactorial(i));
+    console.log(isPrime(i));
+}
+</pre
+                >
+            </div>
+        </div>
+        <script src="/static/game.js"></script>
+    </body>
+</html>
