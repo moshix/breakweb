@@ -26,6 +26,8 @@ Q to quit the game
 '- to slow down the ball'  
 '+ to accelerate the ball'  
 P to pause and unpause the game  
+B for Boss key - pauses the game and displays some boring code  
+  
 
 
 ![Alt text](https://moshix.dynu.net/breakweb.png "Screenshot")
