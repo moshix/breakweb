@@ -16,13 +16,13 @@
 // v 1.0 pause/unpause the game
 // v 1.1 boss key
 // v 1.2 now with sound!
-// v 1.2.1 and 1.2.2 speed improvements
+// v 1.3 randomizer for first ball direction
 
 // Define version number
-const version = "1.2.2";
+const version = "1.3.0";
 
 // Developer-defined ball speed
-const initialBallSpeed = 3.2;
+const initialBallSpeed = 2.9;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -63,7 +63,7 @@ function createBricks() {
   }
 }
 createBricks();
-playSoundWithLimit(startSound, 1300);
+playSoundWithLimit(startSound, 800);
 let rightPressed = false;
 let leftPressed = false;
 let started = false;
@@ -377,6 +377,7 @@ function resetBall() {
   y = canvas.height - 30;
   dx = ballSpeed;
   dy = -ballSpeed;
+  setRandomInitialDirection(); // Set a random initial direction for the ball
 }
 
 function submitScore(player, score) {
@@ -431,6 +432,17 @@ function gameWon() {
   alert("YOU WIN, CONGRATS!");
   document.location.reload();
 }
+
+
+
+// Function to set a random initial direction for the ball
+function setRandomInitialDirection() {
+    const angle = Math.random() * Math.PI / 1.7 + Math.PI / 4.2; // Random angle between 27 and 135 degrees
+    dx = ballSpeed * Math.cos(angle);
+    dy = -ballSpeed * Math.sin(angle);
+}
+
+
 
 function restartGame() {
   score = 0;
