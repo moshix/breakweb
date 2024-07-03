@@ -3,7 +3,7 @@
 Breakweb
 ========
   
-a breakout game for giant mainframes, and everything else. 
+a breakout game.
 
   
 It's a fun breakout game, written in Go and javascript. I chose these two languages because they are also availabe on z/OS. However, this game runs pretty much on everything with a live heartbeat.   
