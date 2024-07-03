@@ -312,13 +312,14 @@ function drawControls() {
     canvas.width / 2 - 80,
     canvas.height / 2 + 120,
   );
+  ctx.fillStyle = "#66ff00";
   ctx.fillText(
     "B for boss key",
     canvas.width / 2 - 80,
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
+  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 72, canvas.height / 2 + 230);
 }
 
 
