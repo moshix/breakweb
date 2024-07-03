@@ -19,7 +19,7 @@
 // v 1.3 randomizer for first ball direction
 
 // Define version number
-const version = "1.3.0";
+const version = "1.3.1";
 
 // Developer-defined ball speed
 const initialBallSpeed = 3.2;
