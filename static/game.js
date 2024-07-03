@@ -17,12 +17,13 @@
 // v 1.1 boss key
 // v 1.2 now with sound!
 // v 1.3 randomizer for first ball direction
+// v 1.3.2 fix help text
 
 // Define version number
-const version = "1.3.0";
+const version = "1.3.2";
 
 // Developer-defined ball speed
-const initialBallSpeed = 2.9;
+const initialBallSpeed = 3.2;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -294,16 +295,16 @@ function drawWalls() {
 }
 
 function drawControls() {
- playSoundWithLimit(startSound, 1000);
+ playSoundWithLimit(startSound, 1300);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "24px Arial";
   ctx.fillStyle = "red";
-  ctx.fillText("Q to quit", canvas.width / 2 - 50, canvas.height / 2);
+  ctx.fillText("Q to quit", canvas.width / 2 - 80, canvas.height / 2);
   ctx.fillStyle = "yellow";
-  ctx.fillText("R to restart", canvas.width / 2 - 60, canvas.height / 2 + 30);
+  ctx.fillText("R to restart", canvas.width / 2 - 80, canvas.height / 2 + 30);
   ctx.fillStyle = "cyan"; // Change color from green to cyan
-  ctx.fillText("+ to speed up", canvas.width / 2 - 60, canvas.height / 2 + 60);
-  ctx.fillText("- to slow down", canvas.width / 2 - 70, canvas.height / 2 + 90);
+  ctx.fillText("+ to speed up", canvas.width / 2 - 80, canvas.height / 2 + 60);
+  ctx.fillText("- to slow down", canvas.width / 2 - 80, canvas.height / 2 + 90);
   ctx.fillStyle = "white";
   ctx.fillText(
     "P to pause/resume",
@@ -315,6 +316,8 @@ function drawControls() {
     canvas.width / 2 - 80,
     canvas.height / 2 + 150,
   );
+  ctx.fillStyle = "#FF00FF"; // Bright purple color
+  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
 }
 
 function draw() {
