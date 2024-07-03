@@ -15,12 +15,13 @@
 // v 0.9 make ball speed developer defined
 // v 1.0 pause/unpause the game
 // v 1.1 boss key
+// v 1.2 now with sound!
 
 // Define version number
-const version = "1.1.0";
+const version = "1.2.1";
 
 // Developer-defined ball speed
-const initialBallSpeed = 2.6;
+const initialBallSpeed = 2.9;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -43,6 +44,14 @@ const brickPadding = 10;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
+// load paddle hit sound
+const paddleHitSound = new Audio('/static/hit.wav');
+const brickHitSound  = new Audio('/static/brick.wav');
+const finishedSound  = new Audio('static/finished.waw');
+const lostSound      = new Audio('static/lost.waw');
+const ballGoneSound =  new Audio('/static/ballgone.wav');
+const startSound =     new Audio('/static/start.mp3');
+
 let bricks = [];
 function createBricks() {
   for (let c = 0; c < brickColumnCount; c++) {
@@ -53,7 +62,7 @@ function createBricks() {
   }
 }
 createBricks();
-
+playSoundWithLimit(startSound, 800);
 let rightPressed = false;
 let leftPressed = false;
 let started = false;
@@ -185,6 +194,8 @@ function collisionDetection() {
           dy = -dy;
           b.status = 0;
           score += (brickRowCount - r) * 100;
+          // make a short sound so that it can play for repetive collions
+          playSoundWithLimit(brickHitSound, 160); // Play sound for 200 ms
           if (score == brickRowCount * brickColumnCount * 300) {
             gameWon();
           }
@@ -282,6 +293,7 @@ function drawWalls() {
 }
 
 function drawControls() {
+ playSoundWithLimit(startSound, 1000);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "24px Arial";
   ctx.fillStyle = "red";
@@ -327,8 +339,10 @@ function draw() {
   } else if (y + dy > canvas.height - ballRadius) {
     if (x > paddleX && x < paddleX + paddleWidth) {
       dy = -dy;
+       paddleHitSound.play(); // Play sound when the ball hits the paddle
     } else {
       lives--;
+      playSoundWithLimit(ballGoneSound,700); // ball lost
       if (lives <= 0) {
         gameOver(false);
       } else {
@@ -375,6 +389,7 @@ function submitScore(player, score) {
 }
 
 function gameOver(quit) {
+  playSoundWithLimit(lostSound,1000);
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "48px Arial";
@@ -399,7 +414,18 @@ function gameOver(quit) {
   document.addEventListener("keyup", keyUpHandler, false);
 }
 
+// Function to play sound with limited duration
+function playSoundWithLimit(audioElement, duration) {
+    audioElement.currentTime = 0; // Reset to start
+    audioElement.play();
+    setTimeout(() => {
+        audioElement.pause();
+        audioElement.currentTime = 0; // Reset to start
+    }, duration);
+}
+
 function gameWon() {
+  playSoundWithLimit(finishedSound, 1000); // Play sound when the ball hits the paddle
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
   alert("YOU WIN, CONGRATS!");
   document.location.reload();
