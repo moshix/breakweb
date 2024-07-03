@@ -16,12 +16,13 @@
 // v 1.0 pause/unpause the game
 // v 1.1 boss key
 // v 1.2 now with sound!
+// v 1.2.1 and 1.2.2 speed improvements
 
 // Define version number
-const version = "1.2.1";
+const version = "1.2.2";
 
 // Developer-defined ball speed
-const initialBallSpeed = 3.0;
+const initialBallSpeed = 3.2;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
