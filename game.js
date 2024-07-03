@@ -45,12 +45,12 @@ const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
 // load paddle hit sound
-const paddleHitSound = new Audio('/static/hit.wav');
-const brickHitSound  = new Audio('/static/brick.wav');
-const finishedSound  = new Audio('static/finished.waw');
-const lostSound      = new Audio('static/lost.waw');
-const ballGoneSound =  new Audio('/static/ballgone.wav');
-const startSound =     new Audio('/static/start.mp3');
+const paddleHitSound = new Audio('hit.wav');
+const brickHitSound  = new Audio('brick.wav');
+const finishedSound  = new Audio('finished.waw');
+const lostSound      = new Audio('lost.waw');
+const ballGoneSound =  new Audio('ballgone.wav');
+const startSound =     new Audio('start.mp3');
 
 let bricks = [];
 function createBricks() {
