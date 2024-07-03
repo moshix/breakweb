@@ -23,7 +23,7 @@
 const version = "1.3.2";
 
 // Developer-defined ball speed
-const initialBallSpeed = 3.2;
+const initialBallSpeed = 5.1;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
