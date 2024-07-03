@@ -62,7 +62,7 @@ function createBricks() {
   }
 }
 createBricks();
-playSoundWithLimit(startSound, 800);
+playSoundWithLimit(startSound, 1300);
 let rightPressed = false;
 let leftPressed = false;
 let started = false;
