@@ -319,7 +319,7 @@ function drawControls() {
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 72, canvas.height / 2 + 230);
+  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 90, canvas.height / 2 + 230);
 }
 
 
