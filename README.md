@@ -20,7 +20,10 @@ To change the port, change the code in breakweb.go to any port you desire and th
 
 How to play the game
 ====================
-     
+
+You can play the game right now by going here:     
+![Alt text](https://moshix.github.io/breakweb/index.html) "Play now")
+      
 R to resume  
 Q to quit the game  
 '- to slow down the ball'  
