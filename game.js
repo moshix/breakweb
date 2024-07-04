@@ -18,12 +18,14 @@
 // v 1.2 now with sound!
 // v 1.3 randomizer for first ball direction
 // v 1.3.2 fix help text
+// v 1.4 Add timer to see how fast the player wins
+// v 1.4.1 beautify GAMME OVER screen
 
 // Define version number
-const version = "1.3.2";
+const version = "1.4.1";
 
 // Developer-defined ball speed
-const initialBallSpeed = 5.1;
+const initialBallSpeed = 3.2;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -53,6 +55,12 @@ const finishedSound  = new Audio('finished.waw');
 const lostSound      = new Audio('lost.waw');
 const ballGoneSound =  new Audio('ballgone.wav');
 const startSound =     new Audio('start.mp3');
+
+// timer variables
+let startTime = 0;
+let elapsedTime = 0;
+
+
 
 let bricks = [];
 function createBricks() {
@@ -124,6 +132,7 @@ function keyDownHandler(e) {
     toggleBossKey();
   } else if (!started) {
     started = true;
+     startTime = Date.now(); // Start the timer
     draw();
   }
 }
@@ -265,7 +274,8 @@ function drawScore() {
 function drawLives() {
   ctx.font = "16px Arial";
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+//  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+  ctx.fillText("Lives: " + lives + "  Time: " + elapsedTime.toFixed(2) + "s", canvas.width - 150, 20);
 }
 
 function drawMessage() {
@@ -294,7 +304,6 @@ function drawWalls() {
   ctx.stroke();
 }
 
-
 function drawControls() {
  playSoundWithLimit(startSound, 1300);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -312,16 +321,14 @@ function drawControls() {
     canvas.width / 2 - 80,
     canvas.height / 2 + 120,
   );
-  ctx.fillStyle = "#66ff00";
   ctx.fillText(
     "B for boss key",
     canvas.width / 2 - 80,
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 90, canvas.height / 2 + 230);
+  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
 }
-
 
 function draw() {
   if (paused || bossKeyActive) {
@@ -374,6 +381,7 @@ function draw() {
   y += dy;
 
   if (started) {
+    elapsedTime = (Date.now() - startTime) / 1000; // Update elapsed tim
     requestAnimationFrame(draw);
   }
 }
@@ -397,26 +405,23 @@ function submitScore(player, score) {
 }
 
 function gameOver(quit) {
+  elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds	
   playSoundWithLimit(lostSound,1000);
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "48px Arial";
   ctx.fillStyle = "#FFFFFF";
-  if (quit) {
-    ctx.fillText("QUIT", canvas.width / 2 - 50, canvas.height / 2 - 50);
-  } else {
-    ctx.fillText("GAME OVER", canvas.width / 2 - 150, canvas.height / 2 - 50);
-  }
-  ctx.fillText(
-    "Score: " + score,
-    canvas.width / 2 - 100,
-    canvas.height / 2 + 50,
-  );
-  ctx.fillText(
-    "Press R to restart",
-    canvas.width / 2 - 150,
-    canvas.height / 2 + 100,
-  );
+  ctx.textAlign = "center"; // Center align text
+  ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 50);
+  ctx.fillStyle = "CYAN";
+  ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2);
+  ctx.fillStyle = "ORANGE";
+  ctx.fillText("Time: " + elapsedTime.toFixed(2) + "s", canvas.width / 2, canvas.height / 2 + 50);
+  ctx.fillStyle = "RED";
+   ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 + 100);
+   if (quit) {
+       ctx.fillText("QUIT", canvas.width / 2, canvas.height / 2 + 150);
+    }
   started = false;
   document.addEventListener("keydown", keyDownHandler, false);
   document.addEventListener("keyup", keyUpHandler, false);
@@ -435,6 +440,7 @@ function playSoundWithLimit(audioElement, duration) {
 function gameWon() {
   playSoundWithLimit(finishedSound, 1000); // Play sound when the ball hits the paddle
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
+  elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds
   alert("YOU WIN, CONGRATS!");
   document.location.reload();
 }
