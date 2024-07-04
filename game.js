@@ -21,9 +21,10 @@
 // v 1.4 Add timer to see how fast the player wins
 // v 1.4.1 beautify GAMME OVER screen
 // v 1.4.2 GAME WON screen refinement
+// v 1.4.3 fix timer out of sight issue
 
 // Define version number
-const version = "1.4.2";
+const version = "1.4.3";
 
 // Developer-defined ball speed
 const initialBallSpeed = 5.1;
@@ -275,8 +276,8 @@ function drawScore() {
 function drawLives() {
   ctx.font = "16px Arial";
   ctx.fillStyle = "#FFFFFF";
-//  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
-  ctx.fillText("Lives: " + lives + "  Time: " + elapsedTime.toFixed(2) + "s", canvas.width - 150, 20);
+  ctx.textAlign = "left"; // Align text to the left
+  ctx.fillText("Lives: " + lives + "  Time: " + elapsedTime.toFixed(2) + "s", canvas.width - 200, 20);
 }
 
 function drawMessage() {
