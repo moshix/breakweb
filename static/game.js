@@ -20,12 +20,13 @@
 // v 1.3.2 fix help text
 // v 1.4 Add timer to see how fast the player wins
 // v 1.4.1 beautify GAMME OVER screen
+// v 1.4.2 change Game Won messagging
 
 // Define version number
-const version = "1.4.1";
+const version = "1.4.2";
 
 // Developer-defined ball speed
-const initialBallSpeed = 3.2;
+const initialBallSpeed = 5.1;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -437,12 +438,26 @@ function playSoundWithLimit(audioElement, duration) {
     }, duration);
 }
 
+
+//player finished the game
 function gameWon() {
   playSoundWithLimit(finishedSound, 1000); // Play sound when the ball hits the paddle
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
   elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds
-  alert("YOU WIN, CONGRATS!");
-  document.location.reload();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "48px Arial";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center"; // Center align text
+  ctx.fillText("CONGRATS! You finished!", canvas.width / 2, canvas.height / 2 - 50);
+  ctx.fillStyle = "ORANGE";
+  ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2);
+  ctx.fillStyle = "CYAN";
+  ctx.fillText("Time: " + elapsedTime.toFixed(2) + "s", canvas.width / 2, canvas.height / 2 + 50);
+  ctx.fillStyle = "RED";
+  ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 + 100);
+  started = false;
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
 }
 
 
