@@ -704,7 +704,7 @@ function handleBallLost() {
     lives--;
     if (lives <= 0) {
         // End the game if no lives are left
-        showGameOver();
+        GameOver();
     } else {
         // Reset ball position and velocity
         x = canvas.width / 2;
