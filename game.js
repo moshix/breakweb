@@ -1,5 +1,5 @@
 // Breakout game for enviroments with Go and javascript
-// (c) 2024 by moshix and hotdog studios, all rights reserved
+// (c) 2024 by moshix
 // 
 // initially created to have a fun game to play on powerful 
 //  IBM z mainframes running z/OS
@@ -20,38 +20,12 @@
 // v 1.3.2 fix help text
 // v 1.4 Add timer to see how fast the player wins
 // v 1.4.1 beautify GAMME OVER screen
-// v 1.4.2 change Game Won messagging
-// v 1.4.3 fix timer out of sight issue
-// v 1.5.0-6 random spoiler tribulations
 
 // Define version number
-const version = "1.5.6";
-
-// spoiler graphic
-const flyingGraphic = new Image();
-flyingGraphic.src = 'flying.svg'; // Path to SVG file
-
-flyingGraphic.onload = function() {
-            console.log('Flying graphic loaded');
-};
-
-flyingGraphic.onerror = function() {
-            console.error('Error loading flying graphic');
-};
-let graphicWidth = 50 * 1.3; // Increase size by 30%
-let graphicHeight = 50 * 1.3; // Increase size by 30%
-let graphicX, graphicY;
-let graphicSpeed = 3;
-let graphicDirection = 1; // 1 for right, -1 for left
-let graphicActive = false;
-let lastGraphicTime = 0;
-const graphicMinInterval = 17000; // Minimum interval in milliseconds (30 seconds)
-
-
-
+const version = "1.4.1";
 
 // Developer-defined ball speed
-const initialBallSpeed = 5.1;
+const initialBallSpeed = 3.2;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -81,7 +55,6 @@ const finishedSound  = new Audio('finished.waw');
 const lostSound      = new Audio('lost.waw');
 const ballGoneSound =  new Audio('ballgone.wav');
 const startSound =     new Audio('start.mp3');
-
 
 // timer variables
 let startTime = 0;
@@ -301,9 +274,8 @@ function drawScore() {
 function drawLives() {
   ctx.font = "16px Arial";
   ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "left"; // Align text to the left
 //  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
-  ctx.fillText("Lives: " + lives + "  Time: " + elapsedTime.toFixed(2) + "s", canvas.width - 200, 20);
+  ctx.fillText("Lives: " + lives + "  Time: " + elapsedTime.toFixed(2) + "s", canvas.width - 150, 20);
 }
 
 function drawMessage() {
@@ -355,7 +327,7 @@ function drawControls() {
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
+  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
 }
 
 function draw() {
@@ -371,10 +343,7 @@ function draw() {
   drawScore();
   drawLives();
   drawMessage();
-  drawGraphic(); // Trigger the drawing of the flying graphic
   collisionDetection();
-  checkGraphicCollision(); // Check for collisions with the graphic
-  moveGraphic(); // Move the graphic
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
@@ -413,7 +382,6 @@ function draw() {
 
   if (started) {
     elapsedTime = (Date.now() - startTime) / 1000; // Update elapsed tim
-    activateGraphic(); // Randomly activate the graphic
     requestAnimationFrame(draw);
   }
 }
@@ -461,20 +429,14 @@ function gameOver(quit) {
 
 // Function to play sound with limited duration
 function playSoundWithLimit(audioElement, duration) {
-    audioElement.pause();
     audioElement.currentTime = 0; // Reset to start
-    audioElement.play().then(() => {
-        setTimeout(() => {
-            audioElement.pause();
-            audioElement.currentTime = 0; // Reset to start
-        }, duration);
-    }).catch((error) => {
-        console.error('Error playing audio:', error);
-    });
+    audioElement.play();
+    setTimeout(() => {
+        audioElement.pause();
+        audioElement.currentTime = 0; // Reset to start
+    }, duration);
 }
 
-
-//player finished the game
 function gameWon() {
   playSoundWithLimit(finishedSound, 1000); // Play sound when the ball hits the paddle
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
@@ -502,51 +464,6 @@ function setRandomInitialDirection() {
     const angle = Math.random() * Math.PI / 1.7 + Math.PI / 4.2; // Random angle between 27 and 135 degrees
     dx = ballSpeed * Math.cos(angle);
     dy = -ballSpeed * Math.sin(angle);
-}
-
-function activateGraphic() {
-    const currentTime = Date.now();
-    if (currentTime - lastGraphicTime >= graphicMinInterval) {
-        graphicActive = true;
-        lastGraphicTime = currentTime; // Update last activation time
-        graphicY = canvas.height / 2; // Set Y position to the middle
-        if (Math.random() < 0.5) {
-            graphicX = -graphicWidth; // Start from the left
-            graphicDirection = 1;
-        } else {
-            graphicX = canvas.width; // Start from the right
-            graphicDirection = -1;
-        }
-    }
-}
-
-// spoiler graphic
-function moveGraphic() {
-    if (graphicActive) {
-        graphicX += graphicSpeed * graphicDirection;
-        if (graphicX > canvas.width || graphicX < -graphicWidth) {
-            graphicActive = false; // Deactivate the graphic when it moves out of the canvas
-        }
-    }
-}
-
-// spoiler graphic
-function drawGraphic() {
-    if (graphicActive) {
-        //console.log('Drawing graphic at:', graphicX, graphicY, graphicWidth, graphicHeight);
-        ctx.drawImage(flyingGraphic, graphicX, graphicY, graphicWidth, graphicHeight);
-    }
-}
-
-//hitting a hot dog?
-function checkGraphicCollision() {
-    if (graphicActive && 
-        x > graphicX && 
-        x < graphicX + graphicWidth && 
-        y > graphicY && 
-        y < graphicY + graphicHeight) {
-        dy = -dy; // Deflect the ball
-    }
 }
 
 
