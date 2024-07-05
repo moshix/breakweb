@@ -26,9 +26,10 @@
 // v 1.6.0 random housefly
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
+// v 1.8.1-2 various bug fixes
 
 // Define version number
-const version = "1.8.1";
+const version = "1.8.2";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -48,7 +49,7 @@ let graphicSpeed = 3;
 let graphicDirection = 1; // 1 for right, -1 for left
 let graphicActive = false;
 let lastGraphicTime = 0;
-const graphicMinInterval = 17000; // Minimum interval in milliseconds (30 seconds)
+const graphicMinInterval = 11000; // Minimum interval in milliseconds (30 seconds)
 // housefly effect
 // Load the housefly sound
 const houseflySound = new Audio('mosquito.mp3'); // Ensure the path is correct
@@ -80,8 +81,9 @@ const houseflyFrameDelay = 2; // Move the housefly every 5 frames
 let houseflyActive = false;
 let houseflyFlightPath = [];
 let houseflyFlightIndex = 0;
+let lastHouseflyTime = 0;
 
-const houseflyMinInterval = 18000; // Minimum interval prime number to not interfere often with hotdog
+const houseflyMinInterval = 19000; // Minimum interval prime number to not interfere often with hotdog
 
 
 
@@ -546,23 +548,6 @@ function setRandomInitialDirection() {
     dy = -ballSpeed * Math.sin(angle);
 }
 
-function activateGraphic() {
-    if (allBricksCleared()) return;
-
-    const currentTime = Date.now();
-    if (currentTime - lastGraphicTime >= graphicMinInterval) {
-        graphicActive = true;
-        lastGraphicTime = currentTime; // Update last activation time
-        graphicY = canvas.height / 2; // Set Y position to the middle
-        if (Math.random() < 0.5) {
-            graphicX = -graphicWidth; // Start from the left
-            graphicDirection = 1;
-        } else {
-            graphicX = canvas.width; // Start from the right
-            graphicDirection = -1;
-        }
-    }
-}
 
 
 // spoiler graphic
@@ -583,6 +568,36 @@ function drawGraphic() {
     }
 }
 
+
+function activateGraphic() {
+    if (allBricksCleared()) return;
+
+    const currentTime = Date.now();
+    if (currentTime - lastGraphicTime >= graphicMinInterval) {
+        graphicActive = true;
+        lastGraphicTime = currentTime; // Update last activation time
+        graphicY = canvas.height / 2; // Set Y position to the middle
+        if (Math.random() < 0.5) {
+            graphicX = -graphicWidth; // Start from the left
+            graphicDirection = 1;
+        } else {
+            graphicX = canvas.width; // Start from the right
+            graphicDirection = -1;
+        }
+    }
+}
+
+function moveGraphic() {
+    if (graphicActive) {
+        graphicX += graphicSpeed * graphicDirection;
+        if (graphicDirection === 1 && graphicX > canvas.width) {
+            graphicActive = false;
+        } else if (graphicDirection === -1 && graphicX < -graphicWidth) {
+            graphicActive = false;
+        }
+    }
+}
+
 // are we hitting the spoiler?
 function checkGraphicCollision() {
     if (graphicActive && 
@@ -600,15 +615,15 @@ function activateHousefly() {
     if (allBricksCleared()) return;
 
     const currentTime = Date.now();
-    if (currentTime - lastGraphicTime >= houseflyMinInterval) {
+    if (currentTime - lastHouseflyTime >= houseflyMinInterval) {
         houseflyActive = true;
         houseflyFlightPath = generateSmoothFlightPath();
         houseflyFlightIndex = 0;
         const initialPoint = houseflyFlightPath[houseflyFlightIndex];
         houseflyX = initialPoint.x;
         houseflyY = initialPoint.y;
-        lastGraphicTime = currentTime; // Update last activation time
-        console.log('Housefly activated at:', houseflyX, houseflyY); // Log the initial position
+        lastHouseflyTime = currentTime; // Update last activation time
+//        console.log('Housefly activated at:', houseflyX, houseflyY); // Log the initial position
 
         // Play the housefly sound
         houseflySound.currentTime = 0; // Reset sound to start
@@ -627,7 +642,6 @@ function activateHousefly() {
         }, houseflyDuration);
     }
 }
-
 
 function moveHousefly() {
     if (houseflyActive) {
@@ -651,13 +665,11 @@ function moveHousefly() {
                     houseflyY = target.y;
                     houseflyFlightIndex++;
                 }
-                console.log('Housefly moving to:', houseflyX, houseflyY, 'Angle:', houseflyAngle); // Log the updated position and angle
+ //               console.log('Housefly moving to:', houseflyX, houseflyY, 'Angle:', houseflyAngle); // Log the updated position and angle
             } else {
                 houseflyActive = false; // Deactivate the housefly when it completes the flight path
-
-                // Stop the housefly sound
                 houseflySound.pause();
-                console.log('Housefly sound paused');
+  //              console.log('Housefly sound paused and housefly deactivated');
             }
         }
     }
