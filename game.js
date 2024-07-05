@@ -26,10 +26,10 @@
 // v 1.6.0 random housefly
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
-// v 1.8.1-6 various bug fixes
+// v 1.8.1-7 various bug fixes
 
 // Define version number
-const version = "1.8.6";
+const version = "1.8.7";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -129,6 +129,8 @@ let startTime = 0;
 let elapsedTime = 0;
 
 
+let paddleMovingLeft = false;
+let paddleMovingRight = false;
 
 let bricks = [];
 function createBricks() {
@@ -206,11 +208,13 @@ function keyDownHandler(e) {
 }
 
 function keyUpHandler(e) {
-  if (e.key == "Right" || e.key == "ArrowRight") {
-    rightPressed = false;
-  } else if (e.key == "Left" || e.key == "ArrowLeft") {
-    leftPressed = false;
-  }
+    if (e.key == "Right" || e.key == "ArrowRight") {
+        paddleMovingRight = false;
+        rightPressed = false;
+    } else if (e.key == "Left" || e.key == "ArrowLeft") {
+        paddleMovingLeft = false;
+        leftPressed = false;
+    }
 }
 
 function togglePause() {
@@ -748,7 +752,15 @@ function allBricksCleared() {
 function handleBallPaddleCollision() {
     dy = -dy;
 
-    // Add a slight random angle to prevent vertical movement
+    // Adjust the ball's angle based on paddle movement
+    const angleAdjustment = 0.2; // Adjust this value for more or less influence
+    if (paddleMovingRight) {
+        dx += angleAdjustment;
+    } else if (paddleMovingLeft) {
+        dx -= angleAdjustment;
+    }
+
+    // Add a slight random angle to prevent vertical movement if necessary
     const minAngle = 0.1;
     const maxAngle = 0.3;
     const randomAngle = Math.random() * (maxAngle - minAngle) + minAngle;
@@ -756,6 +768,7 @@ function handleBallPaddleCollision() {
         dx += randomAngle * (Math.random() < 0.5 ? -1 : 1);
     }
 }
+
 
 function moveBall() {
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
