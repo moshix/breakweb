@@ -29,7 +29,7 @@ const version = "1.5.5";
 
 // spoiler graphic
 const flyingGraphic = new Image();
-flyingGraphic.src = 'flying.svg'; // Path to your SVG file
+flyingGraphic.src = 'flying.svg'; // Path to SVG file
 
 flyingGraphic.onload = function() {
             console.log('Flying graphic loaded');
