@@ -26,10 +26,10 @@
 // v 1.6.0 random housefly
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
-// v 1.8.1-4 various bug fixes
+// v 1.8.1-5 various bug fixes
 
 // Define version number
-const version = "1.8.4";
+const version = "1.8.5";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -92,7 +92,7 @@ const houseflyMinInterval = 19000; // Minimum interval prime number to not inter
 
 
 // Developer-defined ball speed
-const initialBallSpeed = 3.4;
+const initialBallSpeed = 3.1;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
