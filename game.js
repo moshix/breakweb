@@ -1,5 +1,5 @@
 // Breakout game for enviroments with Go and javascript
-// (c) 2024 by moshix and hotdog studios, all rights reserved
+// (c) 2024 by moshix
 // 
 // initially created to have a fun game to play on powerful 
 //  IBM z mainframes running z/OS
@@ -23,13 +23,16 @@
 // v 1.4.2 change Game Won messagging
 // v 1.4.3 fix timer out of sight issue
 // v 1.5.0-6 random spoiler tribulations
+// v 1.6.0 random housefly
+// v 1.7.0 bezier curves for housefly 
+// v 1.8.0 housefly sound
 
 // Define version number
-const version = "1.5.6";
+const version = "1.8.1";
 
 // spoiler graphic
 const flyingGraphic = new Image();
-flyingGraphic.src = 'flying.svg'; // Path to SVG file
+flyingGraphic.src = 'flying.svg'; // Path to your SVG file
 
 flyingGraphic.onload = function() {
             console.log('Flying graphic loaded');
@@ -45,7 +48,43 @@ let graphicSpeed = 3;
 let graphicDirection = 1; // 1 for right, -1 for left
 let graphicActive = false;
 let lastGraphicTime = 0;
-const graphicMinInterval = 17000; // Minimum interval in milliseconds (30 seconds)
+const graphicMinInterval = 23000; // Minimum interval in milliseconds (30 seconds)
+// housefly effect
+// Load the housefly sound
+const houseflySound = new Audio('mosquito.mp3'); // Ensure the path is correct
+houseflySound.load();
+// Set volume to half
+houseflySound.volume = 0.1;
+
+
+
+const houseflyGraphic = new Image();
+houseflyGraphic.src = 'housefly.svg'; // Ensure this path is correct
+
+houseflyGraphic.onload = function() {
+    console.log('Housefly graphic loaded successfully');
+};
+
+houseflyGraphic.onerror = function() {
+    console.error('Error loading housefly graphic');
+};
+
+const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
+let houseflyAngle = 0;
+let houseflyX, houseflyY;
+let houseflyWidth = 50; // Adjust size as needed
+let houseflyHeight = 50; // Adjust size as needed
+let houseflySpeed = 1;
+let houseflyFrameCount = 0; // Frame counter for controlling housefly speed
+const houseflyFrameDelay = 2; // Move the housefly every 5 frames
+let houseflyActive = false;
+let houseflyFlightPath = [];
+let houseflyFlightIndex = 0;
+
+const houseflyMinInterval = 21000; // Minimum interval prime number to not interfere often with hotdog
+
+
+
 
 
 
@@ -355,7 +394,7 @@ function drawControls() {
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
+  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
 }
 
 function draw() {
@@ -372,9 +411,11 @@ function draw() {
   drawLives();
   drawMessage();
   drawGraphic(); // Trigger the drawing of the flying graphic
+  drawHousefly(); // Draw the housefly
   collisionDetection();
   checkGraphicCollision(); // Check for collisions with the graphic
   moveGraphic(); // Move the graphic
+  moveHousefly(); // Move the housefly
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
@@ -414,6 +455,7 @@ function draw() {
   if (started) {
     elapsedTime = (Date.now() - startTime) / 1000; // Update elapsed tim
     activateGraphic(); // Randomly activate the graphic
+    activateHousefly(); // Check and activate the housefly
     requestAnimationFrame(draw);
   }
 }
@@ -505,6 +547,8 @@ function setRandomInitialDirection() {
 }
 
 function activateGraphic() {
+    if (allBricksCleared()) return;
+
     const currentTime = Date.now();
     if (currentTime - lastGraphicTime >= graphicMinInterval) {
         graphicActive = true;
@@ -519,6 +563,7 @@ function activateGraphic() {
         }
     }
 }
+
 
 // spoiler graphic
 function moveGraphic() {
@@ -538,7 +583,7 @@ function drawGraphic() {
     }
 }
 
-//hitting a hot dog?
+// are we hitting the spoiler?
 function checkGraphicCollision() {
     if (graphicActive && 
         x > graphicX && 
@@ -549,6 +594,120 @@ function checkGraphicCollision() {
     }
 }
 
+
+
+function activateHousefly() {
+    if (allBricksCleared()) return;
+
+    const currentTime = Date.now();
+    if (currentTime - lastGraphicTime >= houseflyMinInterval) {
+        houseflyActive = true;
+        houseflyFlightPath = generateSmoothFlightPath();
+        houseflyFlightIndex = 0;
+        const initialPoint = houseflyFlightPath[houseflyFlightIndex];
+        houseflyX = initialPoint.x;
+        houseflyY = initialPoint.y;
+        lastGraphicTime = currentTime; // Update last activation time
+        console.log('Housefly activated at:', houseflyX, houseflyY); // Log the initial position
+
+        // Play the housefly sound
+        houseflySound.currentTime = 0; // Reset sound to start
+        houseflySound.loop = true; // Loop the sound
+        houseflySound.play().then(() => {
+            console.log('Housefly sound playing');
+        }).catch((error) => {
+            console.error('Error playing housefly sound:', error);
+        });
+
+        // Stop the housefly sound and deactivate the housefly after houseflyDuration
+        setTimeout(() => {
+            houseflySound.pause();
+            houseflyActive = false;
+            console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
+        }, houseflyDuration);
+    }
+}
+
+
+function moveHousefly() {
+    if (houseflyActive) {
+        houseflyFrameCount++;
+        if (houseflyFrameCount % houseflyFrameDelay === 0) { // Move every houseflyFrameDelay frames for smoother movement
+            if (houseflyFlightIndex < houseflyFlightPath.length) {
+                const target = houseflyFlightPath[houseflyFlightIndex];
+                const dx = target.x - houseflyX;
+                const dy = target.y - houseflyY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Calculate the angle of movement
+                houseflyAngle = Math.atan2(dy, dx);
+
+                // Ensure speed affects the movement directly
+                if (distance > houseflySpeed) {
+                    houseflyX += (dx / distance) * houseflySpeed;
+                    houseflyY += (dy / distance) * houseflySpeed;
+                } else {
+                    houseflyX = target.x;
+                    houseflyY = target.y;
+                    houseflyFlightIndex++;
+                }
+                console.log('Housefly moving to:', houseflyX, houseflyY, 'Angle:', houseflyAngle); // Log the updated position and angle
+            } else {
+                houseflyActive = false; // Deactivate the housefly when it completes the flight path
+
+                // Stop the housefly sound
+                houseflySound.pause();
+                console.log('Housefly sound paused');
+            }
+        }
+    }
+}
+
+
+function generateSmoothFlightPath() {
+    const path = [];
+    const numPoints = 100; // Number of points in the path
+    const amplitude = 50; // Amplitude of the sine wave
+    const frequency = 0.1; // Frequency of the sine wave
+    let startX = Math.random() * canvas.width;
+    let startY = Math.random() * canvas.height;
+    
+    for (let i = 0; i < numPoints; i++) {
+        const x = startX + i * 10;
+        const y = startY + amplitude * Math.sin(frequency * i);
+        path.push({ x: x % canvas.width, y: (y % canvas.height + canvas.height) % canvas.height });
+    }
+    
+//    console.log('Generated housefly path:', path); // Log the generated path
+    return path;
+}
+
+
+
+function drawHousefly() {
+    if (houseflyActive) {
+//        console.log('Drawing housefly at:', houseflyX, houseflyY, houseflyWidth, houseflyHeight);
+
+        ctx.save(); // Save the current context state
+        ctx.translate(houseflyX, houseflyY); // Move the origin to the housefly's position
+        ctx.rotate(houseflyAngle); // Rotate the context to the housefly's angle
+        ctx.drawImage(houseflyGraphic, -houseflyWidth / 2, -houseflyHeight / 2, houseflyWidth, houseflyHeight); // Draw the housefly centered at the new origin
+        ctx.restore(); // Restore the context to its original state
+    }
+}
+
+
+
+function allBricksCleared() {
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+            if (bricks[c][r].status == 1) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 
 function restartGame() {
