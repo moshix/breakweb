@@ -48,7 +48,7 @@ let graphicSpeed = 3;
 let graphicDirection = 1; // 1 for right, -1 for left
 let graphicActive = false;
 let lastGraphicTime = 0;
-const graphicMinInterval = 23000; // Minimum interval in milliseconds (30 seconds)
+const graphicMinInterval = 17000; // Minimum interval in milliseconds (30 seconds)
 // housefly effect
 // Load the housefly sound
 const houseflySound = new Audio('mosquito.mp3'); // Ensure the path is correct
@@ -81,7 +81,7 @@ let houseflyActive = false;
 let houseflyFlightPath = [];
 let houseflyFlightIndex = 0;
 
-const houseflyMinInterval = 21000; // Minimum interval prime number to not interfere often with hotdog
+const houseflyMinInterval = 18000; // Minimum interval prime number to not interfere often with hotdog
 
 
 
