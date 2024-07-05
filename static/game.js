@@ -1,5 +1,5 @@
 // Breakout game for enviroments with Go and javascript
-// (c) 2024 by moshix
+// (c) 2024 by moshix and hotdog studios. All rights reserved
 // 
 // initially created to have a fun game to play on powerful 
 //  IBM z mainframes running z/OS
@@ -22,10 +22,10 @@
 // v 1.4.1 beautify GAMME OVER screen
 // v 1.4.2 change Game Won messagging
 // v 1.4.3 fix timer out of sight issue
-// v 1.5.0-5 random spoiler tribulations
+// v 1.5.0-6 random spoiler tribulations
 
 // Define version number
-const version = "1.5.5";
+const version = "1.5.6";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -538,9 +538,13 @@ function drawGraphic() {
     }
 }
 
-
+//hitting a hot dog??
 function checkGraphicCollision() {
-    if (graphicActive && x > graphicX && x < graphicX + graphicWidth && y > graphicY && y < graphicY + graphicHeight) {
+    if (graphicActive && 
+        x > graphicX && 
+        x < graphicX + graphicWidth && 
+        y > graphicY && 
+        y < graphicY + graphicHeight) {
         dy = -dy; // Deflect the ball
     }
 }
