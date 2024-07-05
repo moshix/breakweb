@@ -1,5 +1,5 @@
 // Breakout game for enviroments with Go and javascript
-// (c) 2024 by moshix and hotdog studios
+// (c) 2024 by moshix and hotdog studios, all rights reserved
 // 
 // initially created to have a fun game to play on powerful 
 //  IBM z mainframes running z/OS
