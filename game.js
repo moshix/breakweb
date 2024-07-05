@@ -1,5 +1,5 @@
 // Breakout game for enviroments with Go and javascript
-// (c) 2024 by moshix
+// (c) 2024 by moshix and hotdog studios. All rights reserved. 
 // 
 // initially created to have a fun game to play on powerful 
 //  IBM z mainframes running z/OS
@@ -396,7 +396,7 @@ function drawControls() {
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by moshix studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
+  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
 }
 
 function draw() {
