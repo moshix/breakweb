@@ -26,10 +26,10 @@
 // v 1.6.0 random housefly
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
-// v 1.8.1-7 various bug fixes
+// v 1.8.1-8 various bug fixes
 
 // Define version number
-const version = "1.8.7";
+const version = "1.8.8";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -151,6 +151,7 @@ let bossKeyActive = false;
 let score = 0;
 let lives = 3;
 let message = "";
+let messageTimeout;
 let showMessage = false;
 
 let speedIncreases = 0;
@@ -719,10 +720,9 @@ function handleBallLost() {
         }, 2000); // Show message for 2 seconds
 
         // Continue the game
-        draw();
+        setTimeout(draw, 1000); // Delay drawing to show message for a moment
     }
 }
-
 
 function drawHousefly() {
     if (houseflyActive) {
