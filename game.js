@@ -26,10 +26,10 @@
 // v 1.6.0 random housefly
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
-// v 1.8.1-5 various bug fixes
+// v 1.8.1-6 various bug fixes
 
 // Define version number
-const version = "1.8.5";
+const version = "1.8.6";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -695,6 +695,29 @@ function generateSmoothFlightPath() {
     return path;
 }
 
+function handleBallLost() {
+    lives--;
+    if (lives <= 0) {
+        // End the game if no lives are left
+        showGameOver();
+    } else {
+        // Reset ball position and velocity
+        x = canvas.width / 2;
+        y = canvas.height - 30;
+        dx = 2;
+        dy = -2;
+
+        // Show lost ball message
+        message = "You just lost one ball";
+        clearTimeout(messageTimeout);
+        messageTimeout = setTimeout(() => {
+            message = "";
+        }, 2000); // Show message for 2 seconds
+
+        // Continue the game
+        draw();
+    }
+}
 
 
 function drawHousefly() {
