@@ -26,10 +26,10 @@
 // v 1.6.0 random housefly
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
-// v 1.8.1-2 various bug fixes
+// v 1.8.1-4 various bug fixes
 
 // Define version number
-const version = "1.8.3";
+const version = "1.8.4";
 
 // spoiler graphic
 const flyingGraphic = new Image();
