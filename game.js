@@ -29,7 +29,7 @@
 // v 1.8.1-2 various bug fixes
 
 // Define version number
-const version = "1.8.2";
+const version = "1.8.3";
 
 // spoiler graphic
 const flyingGraphic = new Image();
@@ -418,6 +418,7 @@ function draw() {
   checkGraphicCollision(); // Check for collisions with the graphic
   moveGraphic(); // Move the graphic
   moveHousefly(); // Move the housefly
+  moveBall(); // Move the ball
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
@@ -719,6 +720,44 @@ function allBricksCleared() {
         }
     }
     return true;
+}
+
+function handleBallPaddleCollision() {
+    dy = -dy;
+
+    // Add a slight random angle to prevent vertical movement
+    const minAngle = 0.1;
+    const maxAngle = 0.3;
+    const randomAngle = Math.random() * (maxAngle - minAngle) + minAngle;
+    if (Math.abs(dx) < 0.1) {
+        dx += randomAngle * (Math.random() < 0.5 ? -1 : 1);
+    }
+}
+
+function moveBall() {
+    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+        dx = -dx;
+    }
+    if (y + dy < ballRadius) {
+        dy = -dy;
+    } else if (y + dy > canvas.height - ballRadius) {
+        if (x > paddleX && x < paddleX + paddleWidth) {
+            handleBallPaddleCollision();
+        } else {
+            handleBallLost();
+        }
+    }
+
+    x += dx;
+    y += dy;
+
+    // Prevent the ball from going perfectly vertical
+    if (Math.abs(dx) < 0.1) {
+        const minAngle = 0.1;
+        const maxAngle = 0.3;
+        const randomAngle = Math.random() * (maxAngle - minAngle) + minAngle;
+        dx += randomAngle * (Math.random() < 0.5 ? -1 : 1);
+    }
 }
 
 
