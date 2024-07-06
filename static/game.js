@@ -29,20 +29,21 @@
 // v 1.8.1-2 various bug fixes
 // v 1.9   hamburger
 // v 2.0   hamburger and hotdog sounds
+// v 2.1   ied for extra points!
 
 // Define version number
-const version = "2.0.1";
+const version = "2.1.3";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
 flyingGraphic.src = '/static/flying.svg'; // Path to hotdog
 
 flyingGraphic.onload = function() {
-            console.log('Hotdog loaded');
+            console.log('Flying graphic loaded');
 };
 
 flyingGraphic.onerror = function() {
-            console.error('Error loading hotdog');
+            console.error('Error loading flying graphic');
 };
 let graphicWidth = 50 * 1.3; // Increase size by 30%
 let graphicHeight = 50 * 1.3; // Increase size by 30%
@@ -74,12 +75,36 @@ let burgerDirection = 1; // 1 for right, -1 for left
 let burgerActive = false;
 let lastBurgerTime = 0;
 const burgerMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
-// Load the hotdog and burger hit sound
 const foodSound = new Audio('/static/burgerhit.wav');
 foodSound.load();
-// Set volume to half
 foodSound.volume = 0.3;
 //-------------------------------------------------------------
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// ied 
+const iedGraphic = new Image();
+iedGraphic.src = '/static/ied.svg'; // Path to hamburger
+
+iedGraphic.onload = function() {
+            console.log('IED loaded');
+};
+
+iedGraphic.onerror = function() {
+            console.error('Error loading IED  graphic');
+};
+let iedWidth = 50 * 1.1; 
+let iedHeight = 50 * 1.1;
+let iedX, iedY;
+let iedSpeed = 5;
+let iedDirection = 1; // 1 for right, -1 for left
+let iedActive = false;
+let lastIedTime = 0;
+const iedMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
+const iedSound = new Audio('/static/explosion.mp3');
+iedSound.load();
+iedSound.volume = 0.9;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 
 
 
@@ -428,8 +453,14 @@ function drawControls() {
     canvas.width / 2 - 80,
     canvas.height / 2 + 150,
   );
+  ctx.fillStyle = "#A7C7E7";
+  ctx.fillText(
+    "Hotdog, burgers and bombs for more points",
+    canvas.width / 2 - 80,
+    canvas.height / 2 + 180,
+  );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 220);
+  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 240);
 }
 
 function draw() {
@@ -445,14 +476,17 @@ function draw() {
   drawScore();
   drawLives();
   drawMessage();
-  drawGraphic(); // Drawi the hotdog
-  drawBurger();  // draw the burger
+  drawGraphic();  // Draw the hotdog
+  drawBurger();   // Draw the burger
+  drawIed();      // Draw the IED
   drawHousefly(); // Draw the housefly
   collisionDetection();
   checkGraphicCollision(); // Check for collisions with the hotdog
   checkBurgerCollision();  // and the burger
+  checkIedCollision();
   moveGraphic(); // Move the hotdog
   moveBurger();  // move the burger
+  moveIed();
   moveHousefly(); // Move the housefly
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
@@ -494,6 +528,7 @@ function draw() {
     elapsedTime = (Date.now() - startTime) / 1000; // Update elapsed tim
     activateGraphic();  // Randomly activate the hotdog
     activateBurger();   // Randomly activate the burger
+    activateIed();
     activateHousefly(); // Check and activate the housefly
     requestAnimationFrame(draw);
   }
@@ -637,6 +672,7 @@ function checkGraphicCollision() {
         y < graphicY + graphicHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+        score +=  2500
     }
 }
 
@@ -660,7 +696,7 @@ function activateHousefly() {
         houseflySound.currentTime = 0; // Reset sound to start
         houseflySound.loop = true; // Loop the sound
         houseflySound.play().then(() => {
-         //   console.log('Housefly sound playing');
+            console.log('Housefly sound playing');
         }).catch((error) => {
             console.error('Error playing housefly sound:', error);
         });
@@ -669,7 +705,7 @@ function activateHousefly() {
         setTimeout(() => {
             houseflySound.pause();
             houseflyActive = false;
-          //  console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
+            console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
         }, houseflyDuration);
     }
 }
@@ -776,7 +812,7 @@ function moveBurger() {
 // burger DONE!
 function drawBurger() {
     if (burgerActive) {
-     //   console.log('Drawing burger  at:', burgerX, burgerY, burgerWidth, burgerHeight);
+       // console.log('Drawing burger  at:', burgerX, burgerY, burgerWidth, burgerHeight);
         ctx.drawImage(burgerGraphic, burgerX, burgerY, burgerWidth, burgerHeight);
     }
 }
@@ -790,10 +826,66 @@ function checkBurgerCollision() {
         y < burgerY + burgerHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+        score +=  5000  
+    }
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// IED
+
+function activateIed() {
+    if (allBricksCleared()) return; //don't draw if game over
+
+    const currentTime = Date.now();
+    if (currentTime - lastIedTime >= iedMinInterval) {
+        iedActive = true;
+        lastIedTime = currentTime; // Update last activation time
+        iedY = canvas.height / 8; // Set Y position quarter
+        if (Math.random() < 0.5) {
+            iedX = -iedWidth; // Start from the left
+            iedDirection = 1;
+        } else {
+            iedX = canvas.width; // Start from the right
+            iedDirection = -1;
+        }
     }
 }
 
 
+
+function moveIed() {
+
+    if (iedActive) {
+        iedX += iedSpeed * iedDirection;
+        if (iedX > canvas.width || iedX < -iedWidth) {
+            iedActive = false; // Deactivate the ied
+        }
+    }
+}
+
+
+// 
+function drawIed() {
+    if (iedActive) {
+        //console.log('Drawing ied  at:', iedX, iedY, iedWidth, iedHeight);
+        ctx.drawImage(iedGraphic, iedX, iedY, iedWidth, iedHeight);
+    }
+}
+
+//hitting an IED??
+function checkIedCollision() {
+    if (iedActive &&
+        x > iedX &&
+        x < iedX + iedWidth &&
+        y > iedY &&
+        y < iedY + iedHeight) {
+        dy = -dy; // Deflect the ball
+        playSoundWithLimit(iedSound, 2400); 
+        score +=  10000
+    }
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
 //---------------------------------------------------------------------
