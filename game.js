@@ -32,7 +32,7 @@
 // v 2.1.0-4   ied for extra points!
 
 // Define version number
-const version = "2.1.4";
+const version = "2.1.5";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -331,7 +331,7 @@ function collisionDetection() {
           score += (brickRowCount - r) * 100;
           // make a short sound so that it can play for repetive collions
           playSoundWithLimit(brickHitSound, 160); // Play sound for 200 ms
-          if (score == brickRowCount * brickColumnCount * 300) {
+          if (allBricksCleared()) {
             gameWon();
           }
         }
