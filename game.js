@@ -29,10 +29,10 @@
 // v 1.8.1-2 various bug fixes
 // v 1.9   hamburger
 // v 2.0   hamburger and hotdog sounds
-// v 2.1   ied for extra points!
+// v 2.1.0-4   ied for extra points!
 
 // Define version number
-const version = "2.1.3";
+const version = "2.1.4";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -144,11 +144,7 @@ let lastHouseflyTime = 0;
 const houseflyMinInterval = 19000; // Minimum interval prime number to not interfere often with hotdog
 
 
-
-
-
-
-
+//++++++++++++++++++++++++++++++++START OF MAIN LOGIC ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Developer-defined ball speed
 const initialBallSpeed = 4.1;
 let ballSpeed = initialBallSpeed;
@@ -197,7 +193,9 @@ function createBricks() {
     }
   }
 }
+
 createBricks();
+
 playSoundWithLimit(startSound, 800);
 let rightPressed = false;
 let leftPressed = false;
@@ -211,7 +209,7 @@ let showMessage = false;
 
 let speedIncreases = 0;
 let speedDecreases = 0;
-const maxSpeedAdjustments = 3;
+const maxSpeedAdjustments = 6;
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
