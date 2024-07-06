@@ -150,7 +150,7 @@ const houseflyMinInterval = 19000; // Minimum interval prime number to not inter
 
 
 // Developer-defined ball speed
-const initialBallSpeed = 5.1;
+const initialBallSpeed = 4.1;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
