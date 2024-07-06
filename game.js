@@ -31,7 +31,7 @@
 // v 2.0   hamburger and hotdog sounds
 
 // Define version number
-const version = "2.0.1";
+const version = "2.0.5";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -73,12 +73,12 @@ let burgerSpeed = 1;
 let burgerDirection = 1; // 1 for right, -1 for left
 let burgerActive = false;
 let lastBurgerTime = 0;
-const burgerMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
+const burgerMinInterval = 13000; // Minimum interval in milliseconds (30 seconds)
 // Load the hotdog and burger hit sound
 const foodSound = new Audio('burgerhit.wav');
 foodSound.load();
 // Set volume to half
-foodSound.volume = 0.3;
+foodSound.volume = 0.4;
 //-------------------------------------------------------------
 
 
@@ -637,6 +637,7 @@ function checkGraphicCollision() {
         y < graphicY + graphicHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+        score += 2500
     }
 }
 
@@ -790,6 +791,7 @@ function checkBurgerCollision() {
         y < burgerY + burgerHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+        score +=  5000        
     }
 }
 
