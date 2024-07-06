@@ -1,5 +1,5 @@
 // Breakout game for enviroments with Go and javascript
-// (c) 2024 by moshix and hotdog studios, all rights reserved
+// (c) 2024 by moshix
 // 
 // initially created to have a fun game to play on powerful 
 //  IBM z mainframes running z/OS
@@ -23,29 +23,103 @@
 // v 1.4.2 change Game Won messagging
 // v 1.4.3 fix timer out of sight issue
 // v 1.5.0-6 random spoiler tribulations
+// v 1.6.0 random housefly
+// v 1.7.0 bezier curves for housefly 
+// v 1.8.0 housefly sound
+// v 1.8.1-2 various bug fixes
+// v 1.9   hamburger
+// v 2.0   hamburger and hotdog sounds
 
 // Define version number
-const version = "1.5.6";
+const version = "2.0.1";
 
-// spoiler graphic
+// spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
-flyingGraphic.src = '/static/flying.svg'; // Path to SVG file
+flyingGraphic.src = '/static/flying.svg'; // Path to hotdog
 
 flyingGraphic.onload = function() {
-            console.log('Flying graphic loaded');
+            console.log('Hotdog loaded');
 };
 
 flyingGraphic.onerror = function() {
-            console.error('Error loading flying graphic');
+            console.error('Error loading hotdog');
 };
 let graphicWidth = 50 * 1.3; // Increase size by 30%
 let graphicHeight = 50 * 1.3; // Increase size by 30%
 let graphicX, graphicY;
-let graphicSpeed = 3;
+let graphicSpeed = 2;
 let graphicDirection = 1; // 1 for right, -1 for left
 let graphicActive = false;
 let lastGraphicTime = 0;
-const graphicMinInterval = 17000; // Minimum interval in milliseconds (30 seconds)
+const graphicMinInterval = 11000; // Minimum interval in milliseconds (30 seconds)
+
+
+//-------------------------------------------------------------
+// hamburger graphic burgerGraphic
+const burgerGraphic = new Image();
+burgerGraphic.src = '/static/hamburger.svg'; // Path to hamburger
+
+burgerGraphic.onload = function() {
+            console.log('Hamburger loaded');
+};
+
+burgerGraphic.onerror = function() {
+            console.error('Error loading hamburger graphic');
+};
+let burgerWidth = 50 * 1.5; // Increase size by 50%
+let burgerHeight = 50 * 1.5; // Increase size by 50%
+let burgerX, burgerY;
+let burgerSpeed = 1;
+let burgerDirection = 1; // 1 for right, -1 for left
+let burgerActive = false;
+let lastBurgerTime = 0;
+const burgerMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
+// Load the hotdog and burger hit sound
+const foodSound = new Audio('/static/burgerhit.wav');
+foodSound.load();
+// Set volume to half
+foodSound.volume = 0.3;
+//-------------------------------------------------------------
+
+
+
+// housefly effect
+// Load the housefly sound
+const houseflySound = new Audio('/static/mosquito.mp3'); // Ensure the path is correct
+houseflySound.load();
+// Set volume to half
+houseflySound.volume = 0.1;
+
+
+
+const houseflyGraphic = new Image();
+houseflyGraphic.src = '/static/housefly.svg'; // Ensure this path is correct
+
+houseflyGraphic.onload = function() {
+  //  console.log('Housefly loaded successfully');
+};
+
+houseflyGraphic.onerror = function() {
+    console.error('Error loading housefly ');
+};
+
+const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
+let houseflyAngle = 0;
+let houseflyX, houseflyY;
+let houseflyWidth = 50; // Adjust size as needed
+let houseflyHeight = 50; // Adjust size as needed
+let houseflySpeed = 1;
+let houseflyFrameCount = 0; // Frame counter for controlling housefly speed
+const houseflyFrameDelay = 2; // Move the housefly every 5 frames
+let houseflyActive = false;
+let houseflyFlightPath = [];
+let houseflyFlightIndex = 0;
+let lastHouseflyTime = 0;
+
+const houseflyMinInterval = 19000; // Minimum interval prime number to not interfere often with hotdog
+
+
+
 
 
 
@@ -77,8 +151,8 @@ const brickOffsetLeft = 30;
 // load paddle hit sound
 const paddleHitSound = new Audio('/static/hit.wav');
 const brickHitSound  = new Audio('/static/brick.wav');
-const finishedSound  = new Audio('f/static/inished.waw');
-const lostSound      = new Audio('/static/lost.waw');
+const finishedSound  = new Audio('static/finished.waw');
+const lostSound      = new Audio('static/lost.waw');
 const ballGoneSound =  new Audio('/static/ballgone.wav');
 const startSound =     new Audio('/static/start.mp3');
 
@@ -371,10 +445,15 @@ function draw() {
   drawScore();
   drawLives();
   drawMessage();
-  drawGraphic(); // Trigger the drawing of the flying graphic
+  drawGraphic(); // Drawi the hotdog
+  drawBurger();  // draw the burger
+  drawHousefly(); // Draw the housefly
   collisionDetection();
-  checkGraphicCollision(); // Check for collisions with the graphic
-  moveGraphic(); // Move the graphic
+  checkGraphicCollision(); // Check for collisions with the hotdog
+  checkBurgerCollision();  // and the burger
+  moveGraphic(); // Move the hotdog
+  moveBurger();  // move the burger
+  moveHousefly(); // Move the housefly
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
@@ -413,7 +492,9 @@ function draw() {
 
   if (started) {
     elapsedTime = (Date.now() - startTime) / 1000; // Update elapsed tim
-    activateGraphic(); // Randomly activate the graphic
+    activateGraphic();  // Randomly activate the hotdog
+    activateBurger();   // Randomly activate the burger
+    activateHousefly(); // Check and activate the housefly
     requestAnimationFrame(draw);
   }
 }
@@ -476,13 +557,13 @@ function playSoundWithLimit(audioElement, duration) {
 
 //player finished the game
 function gameWon() {
-  playSoundWithLimit(finishedSound, 1000); // Play sound when the ball hits the paddle
-  submitScore("Player1", score); // Replace "Player1" with actual player identifier
+  playSoundWithLimit(finishedSound, 1000);       // Play sound when the ball hits the paddle
+  submitScore("Player1", score);                 // Replace "Player1" with actual player identifier
   elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "48px Arial";
   ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "center"; // Center align text
+  ctx.textAlign = "center"; 
   ctx.fillText("CONGRATS! You finished!", canvas.width / 2, canvas.height / 2 - 50);
   ctx.fillStyle = "ORANGE";
   ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2);
@@ -504,7 +585,23 @@ function setRandomInitialDirection() {
     dy = -ballSpeed * Math.sin(angle);
 }
 
+
+
+// spoiler hotdog moving
+
+
+// hotdog drawing
+function drawGraphic() {
+    if (graphicActive) {
+  //      console.log('Drawing HOTDOG at:', graphicX, graphicY, graphicWidth, graphicHeight);
+        ctx.drawImage(flyingGraphic, graphicX, graphicY, graphicWidth, graphicHeight);
+    }
+}
+
+
 function activateGraphic() {
+    if (allBricksCleared()) return;
+
     const currentTime = Date.now();
     if (currentTime - lastGraphicTime >= graphicMinInterval) {
         graphicActive = true;
@@ -520,25 +617,18 @@ function activateGraphic() {
     }
 }
 
-// spoiler graphic
 function moveGraphic() {
     if (graphicActive) {
         graphicX += graphicSpeed * graphicDirection;
-        if (graphicX > canvas.width || graphicX < -graphicWidth) {
-            graphicActive = false; // Deactivate the graphic when it moves out of the canvas
+        if (graphicDirection === 1 && graphicX > canvas.width) {
+            graphicActive = false;
+        } else if (graphicDirection === -1 && graphicX < -graphicWidth) {
+            graphicActive = false;
         }
     }
 }
 
-// spoiler graphic
-function drawGraphic() {
-    if (graphicActive) {
-        //console.log('Drawing graphic at:', graphicX, graphicY, graphicWidth, graphicHeight);
-        ctx.drawImage(flyingGraphic, graphicX, graphicY, graphicWidth, graphicHeight);
-    }
-}
-
-//hitting a hot dog?
+// are we hitting the hotdog ?
 function checkGraphicCollision() {
     if (graphicActive && 
         x > graphicX && 
@@ -546,9 +636,177 @@ function checkGraphicCollision() {
         y > graphicY && 
         y < graphicY + graphicHeight) {
         dy = -dy; // Deflect the ball
+        playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
     }
 }
 
+
+
+function activateHousefly() {
+    if (allBricksCleared()) return;
+
+    const currentTime = Date.now();
+    if (currentTime - lastHouseflyTime >= houseflyMinInterval) {
+        houseflyActive = true;
+        houseflyFlightPath = generateSmoothFlightPath();
+        houseflyFlightIndex = 0;
+        const initialPoint = houseflyFlightPath[houseflyFlightIndex];
+        houseflyX = initialPoint.x;
+        houseflyY = initialPoint.y;
+        lastHouseflyTime = currentTime; // Update last activation time
+//        console.log('Housefly activated at:', houseflyX, houseflyY); // Log the initial position
+
+        // Play the housefly sound
+        houseflySound.currentTime = 0; // Reset sound to start
+        houseflySound.loop = true; // Loop the sound
+        houseflySound.play().then(() => {
+         //   console.log('Housefly sound playing');
+        }).catch((error) => {
+            console.error('Error playing housefly sound:', error);
+        });
+
+        // Stop the housefly sound and deactivate the housefly after houseflyDuration
+        setTimeout(() => {
+            houseflySound.pause();
+            houseflyActive = false;
+          //  console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
+        }, houseflyDuration);
+    }
+}
+
+function moveHousefly() {
+    if (houseflyActive) {
+        houseflyFrameCount++;
+        if (houseflyFrameCount % houseflyFrameDelay === 0) { // Move every houseflyFrameDelay frames for smoother movement
+            if (houseflyFlightIndex < houseflyFlightPath.length) {
+                const target = houseflyFlightPath[houseflyFlightIndex];
+                const dx = target.x - houseflyX;
+                const dy = target.y - houseflyY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Calculate the angle of movement
+                houseflyAngle = Math.atan2(dy, dx);
+
+                // Ensure speed affects the movement directly
+                if (distance > houseflySpeed) {
+                    houseflyX += (dx / distance) * houseflySpeed;
+                    houseflyY += (dy / distance) * houseflySpeed;
+                } else {
+                    houseflyX = target.x;
+                    houseflyY = target.y;
+                    houseflyFlightIndex++;
+                }
+ //               console.log('Housefly moving to:', houseflyX, houseflyY, 'Angle:', houseflyAngle); // Log the updated position and angle
+            } else {
+                houseflyActive = false; // Deactivate the housefly when it completes the flight path
+                houseflySound.pause();
+  //              console.log('Housefly sound paused and housefly deactivated');
+            }
+        }
+    }
+}
+
+
+function generateSmoothFlightPath() {
+    const path = [];
+    const numPoints = 100; // Number of points in the path
+    const amplitude = 50; // Amplitude of the sine wave
+    const frequency = 0.1; // Frequency of the sine wave
+    let startX = Math.random() * canvas.width;
+    let startY = Math.random() * canvas.height;
+    
+    for (let i = 0; i < numPoints; i++) {
+        const x = startX + i * 10;
+        const y = startY + amplitude * Math.sin(frequency * i);
+        path.push({ x: x % canvas.width, y: (y % canvas.height + canvas.height) % canvas.height });
+    }
+    
+//    console.log('Generated housefly path:', path); // Log the generated path
+    return path;
+}
+
+
+
+function drawHousefly() {
+    if (houseflyActive) {
+//        console.log('Drawing housefly at:', houseflyX, houseflyY, houseflyWidth, houseflyHeight);
+
+        ctx.save(); // Save the current context state
+        ctx.translate(houseflyX, houseflyY); // Move the origin to the housefly's position
+        ctx.rotate(houseflyAngle); // Rotate the context to the housefly's angle
+        ctx.drawImage(houseflyGraphic, -houseflyWidth / 2, -houseflyHeight / 2, houseflyWidth, houseflyHeight); // Draw the housefly centered at the new origin
+        ctx.restore(); // Restore the context to its original state
+    }
+}
+
+
+//burger graphics here DONE!
+
+function activateBurger() {
+    if (allBricksCleared()) return; //don't draw if game over
+
+    const currentTime = Date.now();
+    if (currentTime - lastBurgerTime >= burgerMinInterval) {
+        burgerActive = true;
+        lastBurgerTime = currentTime; // Update last activation time
+        burgerY = canvas.height / 3; // Set Y position quarter
+        if (Math.random() < 0.5) {
+            burgerX = -burgerWidth; // Start from the left
+            burgerDirection = 1;
+        } else {
+            burgerX = canvas.width; // Start from the right
+            burgerDirection = -1;
+        }
+    }
+}
+
+// burger moving  DONE!
+
+function moveBurger() {
+
+    if (burgerActive) {
+        burgerX += burgerSpeed * burgerDirection;
+        if (burgerX > canvas.width || burgerX < -burgerWidth) {
+            burgerActive = false; // Deactivate the burger
+        }
+    }
+}
+
+
+// burger DONE!
+function drawBurger() {
+    if (burgerActive) {
+     //   console.log('Drawing burger  at:', burgerX, burgerY, burgerWidth, burgerHeight);
+        ctx.drawImage(burgerGraphic, burgerX, burgerY, burgerWidth, burgerHeight);
+    }
+}
+
+//hitting a burger?? DONE!
+function checkBurgerCollision() {
+    if (burgerActive && 
+        x > burgerX && 
+        x < burgerX + burgerWidth && 
+        y > burgerY && 
+        y < burgerY + burgerHeight) {
+        dy = -dy; // Deflect the ball
+        playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+    }
+}
+
+
+
+
+//---------------------------------------------------------------------
+function allBricksCleared() {
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+            if (bricks[c][r].status == 1) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 
 function restartGame() {
