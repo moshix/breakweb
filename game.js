@@ -69,7 +69,7 @@ houseflyGraphic.onerror = function() {
     console.error('Error loading housefly graphic');
 };
 
-const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
+const houseflyDuration = 6300; // Duration in milliseconds (4 seconds)
 let houseflyAngle = 0;
 let houseflyX, houseflyY;
 let houseflyWidth = 50; // Adjust size as needed
@@ -81,7 +81,7 @@ let houseflyActive = false;
 let houseflyFlightPath = [];
 let houseflyFlightIndex = 0;
 
-const houseflyMinInterval = 21000; // Minimum interval prime number to not interfere often with hotdog
+const houseflyMinInterval = 23000; // Minimum interval prime number to not interfere often with hotdog
 
 
 
