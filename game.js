@@ -29,10 +29,10 @@
 // v 1.8.1-2 various bug fixes
 // v 1.9   hamburger
 // v 2.0   hamburger and hotdog sounds
-// v 2.1.0-4   ied for extra points!
+// v 2.1.0-6   ied for extra points!
 
 // Define version number
-const version = "2.1.5";
+const version = "2.1.6";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
