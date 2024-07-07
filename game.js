@@ -105,17 +105,11 @@ iedSound.load();
 iedSound.volume = 0.5;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-
-
-
-// housefly effect
+// ++++++++++++++++++ housefly effect ++++++++++++++++++++++++++
 // Load the housefly sound
-const houseflySound = new Audio('mosquito.mp3'); // Ensure the path is correct
+const houseflySound = new Audio('mosquito.mp3');
 houseflySound.load();
-// Set volume to half
 houseflySound.volume = 0.1;
-
-
 
 const houseflyGraphic = new Image();
 houseflyGraphic.src = 'housefly.svg'; // Ensure this path is correct
@@ -127,6 +121,8 @@ houseflyGraphic.onload = function() {
 houseflyGraphic.onerror = function() {
     console.error('Error loading housefly ');
 };
+// ++++++++++++++++++ housefly effect ++++++++++++++++++++++++++
+
 
 const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
 let houseflyAngle = 0;
