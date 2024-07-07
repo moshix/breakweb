@@ -29,10 +29,10 @@
 // v 1.8.1-2 various bug fixes
 // v 1.9   hamburger
 // v 2.0   hamburger and hotdog sounds
-// v 2.1.0-6   ied for extra points!
+// v 2.1.0-7   ied for extra points!
 
 // Define version number
-const version = "2.1.6";
+const version = "2.1.7";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -52,7 +52,7 @@ let graphicSpeed = 2;
 let graphicDirection = 1; // 1 for right, -1 for left
 let graphicActive = false;
 let lastGraphicTime = 0;
-const graphicMinInterval = 11000; // Minimum interval in milliseconds (30 seconds)
+const graphicMinInterval = 13000; // Minimum interval in milliseconds (30 seconds)
 
 
 //-------------------------------------------------------------
@@ -74,7 +74,7 @@ let burgerSpeed = 1;
 let burgerDirection = 1; // 1 for right, -1 for left
 let burgerActive = false;
 let lastBurgerTime = 0;
-const burgerMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
+const burgerMinInterval = 15000; // Minimum interval in milliseconds (30 seconds)
 const foodSound = new Audio('burgerhit.wav');
 foodSound.load();
 foodSound.volume = 0.3;
@@ -95,11 +95,11 @@ iedGraphic.onerror = function() {
 let iedWidth = 50 * 1.1; 
 let iedHeight = 50 * 1.1;
 let iedX, iedY;
-let iedSpeed = 5;
+let iedSpeed = 4;
 let iedDirection = 1; // 1 for right, -1 for left
 let iedActive = false;
 let lastIedTime = 0;
-const iedMinInterval = 28000; // Minimum interval in milliseconds (30 seconds)
+const iedMinInterval = 23000; // Minimum interval in milliseconds (30 seconds)
 const iedSound = new Audio('explosion.mp3');
 iedSound.load();
 iedSound.volume = 0.5;
