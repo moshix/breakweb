@@ -102,7 +102,7 @@ let lastIedTime = 0;
 const iedMinInterval = 28000; // Minimum interval in milliseconds (30 seconds)
 const iedSound = new Audio('explosion.mp3');
 iedSound.load();
-iedSound.volume = 0.9;
+iedSound.volume = 0.5;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
@@ -670,7 +670,7 @@ function checkGraphicCollision() {
         y < graphicY + graphicHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
-        score +=  2500
+        score +=  500
     }
 }
 
@@ -824,7 +824,7 @@ function checkBurgerCollision() {
         y < burgerY + burgerHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
-        score +=  5000  
+        score +=  750  
     }
 }
 
@@ -879,7 +879,7 @@ function checkIedCollision() {
         y < iedY + iedHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(iedSound, 2400); 
-        score +=  10000
+        score +=  20000
     }
 }
 
