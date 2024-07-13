@@ -690,7 +690,7 @@ function activateHousefly() {
         houseflySound.currentTime = 0; // Reset sound to start
         houseflySound.loop = true; // Loop the sound
         houseflySound.play().then(() => {
-            console.log('Housefly sound playing');
+            // console.log('Housefly sound playing');
         }).catch((error) => {
             console.error('Error playing housefly sound:', error);
         });
@@ -699,7 +699,7 @@ function activateHousefly() {
         setTimeout(() => {
             houseflySound.pause();
             houseflyActive = false;
-            console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
+            // console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
         }, houseflyDuration);
     }
 }
