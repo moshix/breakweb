@@ -27,12 +27,15 @@
 // v 1.7.0 bezier curves for housefly 
 // v 1.8.0 housefly sound
 // v 1.8.1-2 various bug fixes
-// v 1.9   hamburger
+// v 1.9   hamburgers flying around
 // v 2.0   hamburger and hotdog sounds
 // v 2.1.0-7   ied for extra points!
+// v 2.2.0-9 hitting IED removes top row to speed up game!
+// v 2.3.0 handle paddle collision better
+// v 2.3.1 visuals
 
 // Define version number
-const version = "2.1.7";
+const version = "2.3.1";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -143,8 +146,10 @@ const houseflyMinInterval = 19000; // Minimum interval prime number to not inter
 //++++++++++++++++++++++++++++++++START OF MAIN LOGIC ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Developer-defined ball speed
 const initialBallSpeed = 4.1;
-let ballSpeed = initialBallSpeed;
+// Developer-defined ball speed
 
+let ballSpeed = initialBallSpeed;
+let canRemoveTopRow = true; // can trigger top row removal flag 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -165,7 +170,7 @@ const brickPadding = 10;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
-// load paddle hit sound
+// load sounds
 const paddleHitSound = new Audio('hit.wav');
 const brickHitSound  = new Audio('brick.wav');
 const finishedSound  = new Audio('finished.waw');
@@ -490,7 +495,7 @@ function draw() {
     dy = -dy;
   } else if (y + dy > canvas.height - ballRadius) {
     if (x > paddleX && x < paddleX + paddleWidth) {
-      dy = -dy;
+       handleBallPaddleCollision();
        paddleHitSound.play(); // Play sound when the ball hits the paddle
     } else {
       lives--;
@@ -508,11 +513,11 @@ function draw() {
       }
     }
   }
-
+// this is in the wrong place!! It should be in the above check of ball trajectory!
   if (rightPressed && paddleX < canvas.width - paddleWidth) {
-    paddleX += 7;
+    paddleX += 8;
   } else if (leftPressed && paddleX > 0) {
-    paddleX -= 7;
+    paddleX -= 8;
   }
 
   x += dx;
@@ -536,14 +541,24 @@ function resetBall() {
   setRandomInitialDirection(); // Set a random initial direction for the ball
 }
 
+function handleBallPaddleCollision() {
+  // Reverse the vertical direction
+  dy = -dy;
+
+  // Calculate the hit position relative to the center of the paddle
+  let hitPos = (x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+
+  // Add a slight horizontal deflection based on the hit position
+  dx += hitPos * 0.2;
+
+  // Prevent perfectly vertical movement
+  if (Math.abs(dx) < 0.1) {
+    dx = dx < 0 ? -0.1 : 0.1;
+  }
+}
+
 function submitScore(player, score) {
-  fetch("/update-score", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ player, score }),
-  });
+ 
 }
 
 function gameOver(quit) {
@@ -615,8 +630,6 @@ function setRandomInitialDirection() {
 }
 
 
-
-// spoiler hotdog moving
 
 
 // hotdog drawing
@@ -875,6 +888,7 @@ function checkIedCollision() {
         y < iedY + iedHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(iedSound, 2400); 
+        removeTopMostRow(); // Remove the top row of bricks
         score +=  20000
     }
 }
@@ -894,6 +908,23 @@ function allBricksCleared() {
     return true;
 }
 
+
+function removeTopMostRow() {
+  if (!canRemoveTopRow) return; // Exit if the function is blocked
+
+  canRemoveTopRow = false; // Block re-execution for 10 seconds
+  setTimeout(() => { canRemoveTopRow = true; }, 10000);
+
+  for (let c = 0; c < brickColumnCount; c++) {
+    if (bricks[c][0].status === 1) {
+      score += 750; // Add points for each brick in the top row
+    }
+    for (let r = 0; r < brickRowCount - 1; r++) {
+      bricks[c][r] = bricks[c][r + 1];
+    }
+    bricks[c][brickRowCount - 1] = { x: 0, y: 0, status: 0 }; // Clear the last row
+  }
+}
 
 function restartGame() {
   score = 0;
