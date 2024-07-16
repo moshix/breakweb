@@ -30,9 +30,12 @@
 // v 1.9   hamburger
 // v 2.0   hamburger and hotdog sounds
 // v 2.1.0-5  IED for extra points!
+// v 2.2.0-9 hitting IED removes top row to speed up game!
+// v 2.3.0 handle paddle collision better
+// v 2.3.1 visuals
 
 // Define version number
-const version = "2.1.5";
+const version = "2.3.1";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -99,7 +102,7 @@ let iedSpeed = 5;
 let iedDirection = 1; // 1 for right, -1 for left
 let iedActive = false;
 let lastIedTime = 0;
-const iedMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
+const iedMinInterval = 17000; // Minimum interval in milliseconds
 const iedSound = new Audio('/static/explosion.mp3');
 iedSound.load();
 iedSound.volume = 0.9;
@@ -128,6 +131,9 @@ houseflyGraphic.onerror = function() {
     console.error('Error loading housefly ');
 };
 
+
+let canRemoveTopRow = true; // can trigger top row removal flag 
+
 const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
 let houseflyAngle = 0;
 let houseflyX, houseflyY;
@@ -145,12 +151,8 @@ const houseflyMinInterval = 19000; // Minimum interval prime number to not inter
 
 
 
-
-
-
-
 // Developer-defined ball speed
-const initialBallSpeed = 5.1;
+const initialBallSpeed = 4.5;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -335,6 +337,7 @@ function collisionDetection() {
           playSoundWithLimit(brickHitSound, 160); // Play sound for 200 ms
           if (allBricksCleared()) {
             gameWon();
+            document.location.reload();
           }
         }
       }
@@ -436,31 +439,31 @@ function drawControls() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "24px Arial";
   ctx.fillStyle = "red";
-  ctx.fillText("Q to quit", canvas.width / 2 - 80, canvas.height / 2);
+  ctx.fillText("Q to quit", canvas.width / 2 - 120, canvas.height / 2);
   ctx.fillStyle = "yellow";
-  ctx.fillText("R to restart", canvas.width / 2 - 80, canvas.height / 2 + 30);
+  ctx.fillText("R to restart", canvas.width / 2 - 120, canvas.height / 2 + 30);
   ctx.fillStyle = "cyan"; // Change color from green to cyan
-  ctx.fillText("+ to speed up", canvas.width / 2 - 80, canvas.height / 2 + 60);
-  ctx.fillText("- to slow down", canvas.width / 2 - 80, canvas.height / 2 + 90);
+  ctx.fillText("+ to speed up", canvas.width / 2 - 120, canvas.height / 2 + 60);
+  ctx.fillText("- to slow down", canvas.width / 2 - 120, canvas.height / 2 + 90);
   ctx.fillStyle = "white";
   ctx.fillText(
     "P to pause/resume",
-    canvas.width / 2 - 80,
+    canvas.width / 2 - 120,
     canvas.height / 2 + 120,
   );
   ctx.fillText(
     "B for boss key",
-    canvas.width / 2 - 80,
+    canvas.width / 2 - 120,
     canvas.height / 2 + 150,
   );
   ctx.fillStyle = "#A7C7E7";
   ctx.fillText(
     "Hotdog, burgers and bombs for more points",
-    canvas.width / 2 - 80,
+    canvas.width / 2 - 120,
     canvas.height / 2 + 180,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 240);
+  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 120, canvas.height / 2 + 240);
 }
 
 function draw() {
@@ -496,7 +499,7 @@ function draw() {
     dy = -dy;
   } else if (y + dy > canvas.height - ballRadius) {
     if (x > paddleX && x < paddleX + paddleWidth) {
-      dy = -dy;
+      handleBallPaddleCollision();
        paddleHitSound.play(); // Play sound when the ball hits the paddle
     } else {
       lives--;
@@ -531,6 +534,22 @@ function draw() {
     activateIed();
     activateHousefly(); // Check and activate the housefly
     requestAnimationFrame(draw);
+  }
+}
+
+function handleBallPaddleCollision() {
+  // Reverse the vertical direction
+  dy = -dy;
+
+  // Calculate the hit position relative to the center of the paddle
+  let hitPos = (x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+
+  // Add a slight horizontal deflection based on the hit position
+  dx += hitPos * 0.09; // smaller constant has less impact
+
+  // Prevent perfectly vertical movement
+  if (Math.abs(dx) < 0.1) {
+    dx = dx < 0 ? -0.2 : 0.2;
   }
 }
 
@@ -776,7 +795,7 @@ function drawHousefly() {
 }
 
 
-//burger graphics here DONE!
+//burger graphics here
 
 function activateBurger() {
     if (allBricksCleared()) return; //don't draw if game over
@@ -796,7 +815,7 @@ function activateBurger() {
     }
 }
 
-// burger moving  DONE!
+// burger moving
 
 function moveBurger() {
 
@@ -809,7 +828,7 @@ function moveBurger() {
 }
 
 
-// burger DONE!
+// draw a burger
 function drawBurger() {
     if (burgerActive) {
        // console.log('Drawing burger  at:', burgerX, burgerY, burgerWidth, burgerHeight);
@@ -817,7 +836,7 @@ function drawBurger() {
     }
 }
 
-//hitting a burger?? DONE!
+//hitting a burger?? 
 function checkBurgerCollision() {
     if (burgerActive && 
         x > burgerX && 
@@ -881,7 +900,8 @@ function checkIedCollision() {
         y < iedY + iedHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(iedSound, 2400); 
-        score +=  10000
+        removeTopMostRow(); // Remove the top row of bricks
+        score +=  15000
     }
 }
 
@@ -898,6 +918,24 @@ function allBricksCleared() {
         }
     }
     return true;
+}
+
+
+function removeTopMostRow() {
+  if (!canRemoveTopRow) return; // Exit if the function is blocked
+
+  canRemoveTopRow = false; // Block re-execution for 10 seconds
+  setTimeout(() => { canRemoveTopRow = true; }, 10000);
+
+  for (let c = 0; c < brickColumnCount; c++) {
+    if (bricks[c][0].status === 1) {
+      score += 750; // Add points for each brick in the top row
+    }
+    for (let r = 0; r < brickRowCount - 1; r++) {
+      bricks[c][r] = bricks[c][r + 1];
+    }
+    bricks[c][brickRowCount - 1] = { x: 0, y: 0, status: 0 }; // Clear the last row
+  }
 }
 
 
