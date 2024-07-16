@@ -29,14 +29,15 @@
 // v 1.8.1-2 various bug fixes
 // v 1.9   hamburger
 // v 2.0   hamburger and hotdog sounds
-// v 2.1.0-7   ied for extra points!
+// v 2.1.0-5  IED for extra points!
+// v 2.2.0-9 hitting IED removes top row to speed up game!
 
 // Define version number
-const version = "2.1.7";
+const version = "2.2.2";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
-flyingGraphic.src = 'flying.svg'; // Path to hotdog
+flyingGraphic.src = '/static/flying.svg'; // Path to hotdog
 
 flyingGraphic.onload = function() {
             console.log('Flying graphic loaded');
@@ -52,13 +53,13 @@ let graphicSpeed = 2;
 let graphicDirection = 1; // 1 for right, -1 for left
 let graphicActive = false;
 let lastGraphicTime = 0;
-const graphicMinInterval = 13000; // Minimum interval in milliseconds (30 seconds)
+const graphicMinInterval = 11000; // Minimum interval in milliseconds (30 seconds)
 
 
 //-------------------------------------------------------------
 // hamburger graphic burgerGraphic
 const burgerGraphic = new Image();
-burgerGraphic.src = 'hamburger.svg'; // Path to hamburger
+burgerGraphic.src = '/static/hamburger.svg'; // Path to hamburger
 
 burgerGraphic.onload = function() {
             console.log('Hamburger loaded');
@@ -74,8 +75,8 @@ let burgerSpeed = 1;
 let burgerDirection = 1; // 1 for right, -1 for left
 let burgerActive = false;
 let lastBurgerTime = 0;
-const burgerMinInterval = 15000; // Minimum interval in milliseconds (30 seconds)
-const foodSound = new Audio('burgerhit.wav');
+const burgerMinInterval = 12000; // Minimum interval in milliseconds (30 seconds)
+const foodSound = new Audio('/static/burgerhit.wav');
 foodSound.load();
 foodSound.volume = 0.3;
 //-------------------------------------------------------------
@@ -83,7 +84,7 @@ foodSound.volume = 0.3;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // ied 
 const iedGraphic = new Image();
-iedGraphic.src = 'ied.svg'; // Path to hamburger
+iedGraphic.src = '/static/ied.svg'; // Path to hamburger
 
 iedGraphic.onload = function() {
             console.log('IED loaded');
@@ -95,24 +96,30 @@ iedGraphic.onerror = function() {
 let iedWidth = 50 * 1.1; 
 let iedHeight = 50 * 1.1;
 let iedX, iedY;
-let iedSpeed = 4;
+let iedSpeed = 5;
 let iedDirection = 1; // 1 for right, -1 for left
 let iedActive = false;
 let lastIedTime = 0;
-const iedMinInterval = 23000; // Minimum interval in milliseconds (30 seconds)
-const iedSound = new Audio('explosion.mp3');
+const iedMinInterval = 17000; // Minimum interval in milliseconds
+const iedSound = new Audio('/static/explosion.mp3');
 iedSound.load();
-iedSound.volume = 0.5;
+iedSound.volume = 0.9;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-// ++++++++++++++++++ housefly effect ++++++++++++++++++++++++++
+
+
+
+// housefly effect
 // Load the housefly sound
-const houseflySound = new Audio('mosquito.mp3');
+const houseflySound = new Audio('/static/mosquito.mp3'); // Ensure the path is correct
 houseflySound.load();
+// Set volume to half
 houseflySound.volume = 0.1;
 
+
+
 const houseflyGraphic = new Image();
-houseflyGraphic.src = 'housefly.svg'; // Ensure this path is correct
+houseflyGraphic.src = '/static/housefly.svg'; // Ensure this path is correct
 
 houseflyGraphic.onload = function() {
   //  console.log('Housefly loaded successfully');
@@ -121,8 +128,9 @@ houseflyGraphic.onload = function() {
 houseflyGraphic.onerror = function() {
     console.error('Error loading housefly ');
 };
-// ++++++++++++++++++ housefly effect ++++++++++++++++++++++++++
 
+
+let canRemoveTopRow = true; // can trigger top row removal flag 
 
 const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
 let houseflyAngle = 0;
@@ -140,9 +148,13 @@ let lastHouseflyTime = 0;
 const houseflyMinInterval = 19000; // Minimum interval prime number to not interfere often with hotdog
 
 
-//++++++++++++++++++++++++++++++++START OF MAIN LOGIC ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
 // Developer-defined ball speed
-const initialBallSpeed = 4.1;
+const initialBallSpeed = 4.0;
 let ballSpeed = initialBallSpeed;
 
 const canvas = document.getElementById("gameCanvas");
@@ -166,12 +178,12 @@ const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
 // load paddle hit sound
-const paddleHitSound = new Audio('hit.wav');
-const brickHitSound  = new Audio('brick.wav');
-const finishedSound  = new Audio('finished.waw');
-const lostSound      = new Audio('lost.waw');
-const ballGoneSound =  new Audio('ballgone.wav');
-const startSound =     new Audio('start.mp3');
+const paddleHitSound = new Audio('/static/hit.wav');
+const brickHitSound  = new Audio('/static/brick.wav');
+const finishedSound  = new Audio('static/finished.waw');
+const lostSound      = new Audio('static/lost.waw');
+const ballGoneSound =  new Audio('/static/ballgone.wav');
+const startSound =     new Audio('/static/start.mp3');
 
 
 // timer variables
@@ -189,9 +201,7 @@ function createBricks() {
     }
   }
 }
-
 createBricks();
-
 playSoundWithLimit(startSound, 800);
 let rightPressed = false;
 let leftPressed = false;
@@ -205,7 +215,7 @@ let showMessage = false;
 
 let speedIncreases = 0;
 let speedDecreases = 0;
-const maxSpeedAdjustments = 6;
+const maxSpeedAdjustments = 3;
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -329,6 +339,7 @@ function collisionDetection() {
           playSoundWithLimit(brickHitSound, 160); // Play sound for 200 ms
           if (allBricksCleared()) {
             gameWon();
+            document.location.reload();
           }
         }
       }
@@ -666,7 +677,7 @@ function checkGraphicCollision() {
         y < graphicY + graphicHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
-        score +=  500
+        score +=  2500
     }
 }
 
@@ -690,7 +701,7 @@ function activateHousefly() {
         houseflySound.currentTime = 0; // Reset sound to start
         houseflySound.loop = true; // Loop the sound
         houseflySound.play().then(() => {
-            // console.log('Housefly sound playing');
+            console.log('Housefly sound playing');
         }).catch((error) => {
             console.error('Error playing housefly sound:', error);
         });
@@ -699,7 +710,7 @@ function activateHousefly() {
         setTimeout(() => {
             houseflySound.pause();
             houseflyActive = false;
-            // console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
+            console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
         }, houseflyDuration);
     }
 }
@@ -820,7 +831,7 @@ function checkBurgerCollision() {
         y < burgerY + burgerHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
-        score +=  750  
+        score +=  5000  
     }
 }
 
@@ -875,7 +886,8 @@ function checkIedCollision() {
         y < iedY + iedHeight) {
         dy = -dy; // Deflect the ball
         playSoundWithLimit(iedSound, 2400); 
-        score +=  20000
+        removeTopMostRow(); // Remove the top row of bricks
+        score +=  15000
     }
 }
 
@@ -892,6 +904,24 @@ function allBricksCleared() {
         }
     }
     return true;
+}
+
+
+function removeTopMostRow() {
+  if (!canRemoveTopRow) return; // Exit if the function is blocked
+
+  canRemoveTopRow = false; // Block re-execution for 10 seconds
+  setTimeout(() => { canRemoveTopRow = true; }, 10000);
+
+  for (let c = 0; c < brickColumnCount; c++) {
+    if (bricks[c][0].status === 1) {
+      score += 250; // Add points for each brick in the top row
+    }
+    for (let r = 0; r < brickRowCount - 1; r++) {
+      bricks[c][r] = bricks[c][r + 1];
+    }
+    bricks[c][brickRowCount - 1] = { x: 0, y: 0, status: 0 }; // Clear the last row
+  }
 }
 
 
