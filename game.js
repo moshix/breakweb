@@ -173,8 +173,8 @@ const brickOffsetLeft = 30;
 // load sounds
 const paddleHitSound = new Audio('hit.wav');
 const brickHitSound  = new Audio('brick.wav');
-const finishedSound  = new Audio('finished.waw');
-const lostSound      = new Audio('lost.waw');
+const finishedSound  = new Audio('finished.wav');
+const lostSound      = new Audio('lost.wav');
 const ballGoneSound =  new Audio('ballgone.wav');
 const startSound =     new Audio('start.mp3');
 
