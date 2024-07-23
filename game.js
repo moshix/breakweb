@@ -35,7 +35,7 @@
 // v 2.3.1 visuals
 
 // Define version number
-const version = "2.3.1";
+const version = "2.3.2";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
