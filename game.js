@@ -32,10 +32,10 @@
 // v 2.1.0-7   ied for extra points!
 // v 2.2.0-9 hitting IED removes top row to speed up game!
 // v 2.3.0 handle paddle collision better
-// v 2.3.1-4 visuals and small fixes
+// v 2.3.1-4 visuals and small fixes, change to IBM logo for IED
 
 // Define version number
-const version = "2.3.3";
+const version = "2.3.4";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
