@@ -95,8 +95,8 @@ iedGraphic.onload = function() {
 iedGraphic.onerror = function() {
             console.error('Error loading IED  graphic');
 };
-let iedWidth = 50 * 1.1; 
-let iedHeight = 50 * 1.1;
+let iedWidth = 50 * 1.4; 
+let iedHeight = 50 * 1.4;
 let iedX, iedY;
 let iedSpeed = 4;
 let iedDirection = 1; // 1 for right, -1 for left
