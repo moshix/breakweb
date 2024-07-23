@@ -454,7 +454,7 @@ function drawControls() {
   );
   ctx.fillStyle = "#A7C7E7";
   ctx.fillText(
-    "Hotdog, burgers and bombs for more points",
+    "Hotdog, burgers and IBM for more points",
     canvas.width / 2 - 80,
     canvas.height / 2 + 180,
   );
