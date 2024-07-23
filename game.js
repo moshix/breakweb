@@ -32,10 +32,10 @@
 // v 2.1.0-7   ied for extra points!
 // v 2.2.0-9 hitting IED removes top row to speed up game!
 // v 2.3.0 handle paddle collision better
-// v 2.3.1 visuals
+// v 2.3.1-4 visuals and small fixes
 
 // Define version number
-const version = "2.3.2";
+const version = "2.3.3";
 
 // spoiler hotdog (graphic=hotdog)
 const flyingGraphic = new Image();
@@ -563,7 +563,7 @@ function submitScore(player, score) {
 
 function gameOver(quit) {
   elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds	
-  playSoundWithLimit(lostSound,1000);
+  playSoundWithLimit(lostSound,2000);
   submitScore("Player1", score); // Replace "Player1" with actual player identifier
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "48px Arial";
