@@ -434,32 +434,34 @@ function drawControls() {
  playSoundWithLimit(startSound, 1300);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = "24px Arial";
+    ctx.fillStyle = "cyan";
+  ctx.fillText("S to start", canvas.width / 2 - 80, canvas.height / 2);          
   ctx.fillStyle = "red";
-  ctx.fillText("Q to quit", canvas.width / 2 - 80, canvas.height / 2);
+  ctx.fillText("Q to quit", canvas.width / 2 - 80, canvas.height / 2 + 30 );
   ctx.fillStyle = "yellow";
-  ctx.fillText("R to restart", canvas.width / 2 - 80, canvas.height / 2 + 30);
+  ctx.fillText("R to restart", canvas.width / 2 - 80, canvas.height / 2 + 60);
   ctx.fillStyle = "cyan"; // Change color from green to cyan
-  ctx.fillText("+ to speed up", canvas.width / 2 - 80, canvas.height / 2 + 60);
-  ctx.fillText("- to slow down", canvas.width / 2 - 80, canvas.height / 2 + 90);
+  ctx.fillText("+ to speed up", canvas.width / 2 - 80, canvas.height / 2 + 90);
+  ctx.fillText("- to slow down", canvas.width / 2 - 80, canvas.height / 2 + 120);
   ctx.fillStyle = "white";
   ctx.fillText(
     "P to pause/resume",
     canvas.width / 2 - 80,
-    canvas.height / 2 + 120,
+    canvas.height / 2 + 150,
   );
   ctx.fillText(
     "B for boss key",
     canvas.width / 2 - 80,
-    canvas.height / 2 + 150,
+    canvas.height / 2 + 180,
   );
   ctx.fillStyle = "#A7C7E7";
   ctx.fillText(
     "Hotdog, burgers and IBM for more points",
     canvas.width / 2 - 80,
-    canvas.height / 2 + 180,
+    canvas.height / 2 + 210,
   );
   ctx.fillStyle = "#FF00FF"; // Bright purple color
-  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 240);
+  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 270);
 }
 
 function draw() {
