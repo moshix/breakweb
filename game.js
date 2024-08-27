@@ -1,852 +1,951 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunar Lander for MVS/370</title>
-    <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; background: black; }
-        #ui {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        .boss-screen {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #2e2e2e;
-            color: white;
-            font-family: monospace;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .legend {
-            position: absolute;
-            top: 10px;
-            right: 100px; /* Moved further to the right */
-            color: white;
-            font-family: Arial, sans-serif;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .legend p {
-            margin: 5px 0;
-        }
-    </style>
-</head>
-<body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="ui">
-        <div><a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fmoshix.github.io%2Flunarlander%2F&count_bg=%2379C83D&title_bg=%230A60AE&icon=apacherocketmq.svg&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a></div>
-        <div>Horizontal Speed: <span id="horizontal-speed">0</span></div>
-        <div>Vertical Speed: <span id="vertical-speed">0</span></div>
-        <div>Height: <span id="height">0</span></div>
-        <div>Fuel: <span id="fuel">50</span></div>
-        <div>Fuel Consumption: <span id="fuel-consumption">0</span></div>
-        <div>Version: 1.28</div> <!-- version number -->
-        
-    </div>
-    <div class="legend" id="legend">
-        <p style="color: white;"><strong>Controls:</strong></p>
-        <p style="color: orange;">Arrow Up: Thrust</p>
-        <p style="color: yellow;">Arrow Left/Right: Lateral</p>
-        <p style="color: green;">P: Pause/Unpause</p>
-        <p style="color: orange;">B: Boss Key</p>
-        <p style="color: purple;">R: Restart Game</p>
-        <p style="color: pink;">M: Mute/unmute</p>
-        <p style="color: cyan;">No landing on craters</p> 
-        <p style="color: red;">Landing speed < 2.5 m/s</p> 
-        <p style="color: magenta;">(c) 2024 hotdog studios</p>
-    </div>
-    <div class="boss-screen" id="bossScreen">
-        <pre>#include &lt;stdio.h&gt;
+// Breakout game for enviroments with Go and javascript
+// (c) 2024 by moshix
+// 
+// initially created to have a fun game to play on powerful 
+//  IBM z mainframes running z/OS
+//  ... but it really runs anywhere
+// v 0.1 humble beginnings
+// v 0.2 web server and html canvas
+// v 0.3 game logic
+// v 0.4 colors!
+// v 0.5 restart, pause and resume
+// v 0.6 score keeping
+// v 0.7 logic refinements
+// v 0.8 rip out Pause
+// v 0.9 make ball speed developer defined
+// v 1.0 pause/unpause the game
+// v 1.1 boss key
+// v 1.2 now with sound!
+// v 1.3 randomizer for first ball direction
+// v 1.3.2 fix help text
+// v 1.4 Add timer to see how fast the player wins
+// v 1.4.1 beautify GAMME OVER screen
+// v 1.4.2 change Game Won messagging
+// v 1.4.3 fix timer out of sight issue
+// v 1.5.0-6 random spoiler tribulations
+// v 1.6.0 random housefly
+// v 1.7.0 bezier curves for housefly 
+// v 1.8.0 housefly sound
+// v 1.8.1-2 various bug fixes
+// v 1.9   hamburgers flying around
+// v 2.0   hamburger and hotdog sounds
+// v 2.1.0-7   ied for extra points!
+// v 2.2.0-9 hitting IED removes top row to speed up game!
+// v 2.3.0 handle paddle collision better
+// v 2.3.1-4 visuals and small fixes, change to IBM logo for IED
 
-int main() {
-    int i;
-    for (i = 0; i &lt; 10; i++) {
-        printf("I love my boss so much! \n");
+// Define version number
+const version = "2.3.4";
+
+// spoiler hotdog (graphic=hotdog)
+const flyingGraphic = new Image();
+flyingGraphic.src = 'flying.svg'; // Path to hotdog
+
+flyingGraphic.onload = function() {
+            console.log('Flying graphic loaded');
+};
+
+flyingGraphic.onerror = function() {
+            console.error('Error loading flying graphic');
+};
+let graphicWidth = 50 * 1.3; // Increase size by 30%
+let graphicHeight = 50 * 1.3; // Increase size by 30%
+let graphicX, graphicY;
+let graphicSpeed = 2;
+let graphicDirection = 1; // 1 for right, -1 for left
+let graphicActive = false;
+let lastGraphicTime = 0;
+const graphicMinInterval = 13000; // Minimum interval in milliseconds (30 seconds)
+
+
+//-------------------------------------------------------------
+// hamburger graphic burgerGraphic
+const burgerGraphic = new Image();
+burgerGraphic.src = 'hamburger.svg'; // Path to hamburger
+
+burgerGraphic.onload = function() {
+            console.log('Hamburger loaded');
+};
+
+burgerGraphic.onerror = function() {
+            console.error('Error loading hamburger graphic');
+};
+let burgerWidth = 50 * 1.5; // Increase size by 50%
+let burgerHeight = 50 * 1.5; // Increase size by 50%
+let burgerX, burgerY;
+let burgerSpeed = 1;
+let burgerDirection = 1; // 1 for right, -1 for left
+let burgerActive = false;
+let lastBurgerTime = 0;
+const burgerMinInterval = 15000; // Minimum interval in milliseconds (30 seconds)
+const foodSound = new Audio('burgerhit.wav');
+foodSound.load();
+foodSound.volume = 0.3;
+//-------------------------------------------------------------
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// ied 
+const iedGraphic = new Image();
+iedGraphic.src = 'ied.svg'; // Path to hamburger
+
+iedGraphic.onload = function() {
+            console.log('IED loaded');
+};
+
+iedGraphic.onerror = function() {
+            console.error('Error loading IED  graphic');
+};
+let iedWidth = 50 * 1.4; 
+let iedHeight = 50 * 1.4;
+let iedX, iedY;
+let iedSpeed = 4;
+let iedDirection = 1; // 1 for right, -1 for left
+let iedActive = false;
+let lastIedTime = 0;
+const iedMinInterval = 23000; // Minimum interval in milliseconds (30 seconds)
+const iedSound = new Audio('explosion.mp3');
+iedSound.load();
+iedSound.volume = 0.5;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+// ++++++++++++++++++ housefly effect ++++++++++++++++++++++++++
+// Load the housefly sound
+const houseflySound = new Audio('mosquito.mp3');
+houseflySound.load();
+houseflySound.volume = 0.1;
+
+const houseflyGraphic = new Image();
+houseflyGraphic.src = 'housefly.svg'; // Ensure this path is correct
+
+houseflyGraphic.onload = function() {
+  //  console.log('Housefly loaded successfully');
+};
+
+houseflyGraphic.onerror = function() {
+    console.error('Error loading housefly ');
+};
+// ++++++++++++++++++ housefly effect ++++++++++++++++++++++++++
+
+
+const houseflyDuration = 5300; // Duration in milliseconds (4 seconds)
+let houseflyAngle = 0;
+let houseflyX, houseflyY;
+let houseflyWidth = 50; // Adjust size as needed
+let houseflyHeight = 50; // Adjust size as needed
+let houseflySpeed = 1;
+let houseflyFrameCount = 0; // Frame counter for controlling housefly speed
+const houseflyFrameDelay = 2; // Move the housefly every 5 frames
+let houseflyActive = false;
+let houseflyFlightPath = [];
+let houseflyFlightIndex = 0;
+let lastHouseflyTime = 0;
+
+const houseflyMinInterval = 19000; // Minimum interval prime number to not interfere often with hotdog
+
+
+//++++++++++++++++++++++++++++++++START OF MAIN LOGIC ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Developer-defined ball speed
+const initialBallSpeed = 4.1;
+// Developer-defined ball speed
+
+let ballSpeed = initialBallSpeed;
+let canRemoveTopRow = true; // can trigger top row removal flag 
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const paddleHeight = 10;
+const paddleWidth = 100;
+let paddleX = (canvas.width - paddleWidth) / 2;
+
+const ballRadius = 10;
+let x, y, dx, dy;
+resetBall();
+
+const brickRowCount = 5;
+const brickColumnCount = 10;
+const brickWidth =
+  (canvas.width - 2 * 30 - (brickColumnCount - 1) * 10) / brickColumnCount; // 30px space on each side
+const brickHeight = 20;
+const brickPadding = 10;
+const brickOffsetTop = 30;
+const brickOffsetLeft = 30;
+
+// load sounds
+const paddleHitSound = new Audio('hit.wav');
+const brickHitSound  = new Audio('brick.wav');
+const finishedSound  = new Audio('finished.wav');
+const lostSound      = new Audio('lost.wav');
+const ballGoneSound =  new Audio('ballgone.wav');
+const startSound =     new Audio('start.mp3');
+
+
+// timer variables
+let startTime = 0;
+let elapsedTime = 0;
+
+
+
+let bricks = [];
+function createBricks() {
+  for (let c = 0; c < brickColumnCount; c++) {
+    bricks[c] = [];
+    for (let r = 0; r < brickRowCount; r++) {
+      bricks[c][r] = { x: 0, y: 0, status: 1 };
     }
-    return 0;
-}</pre>
-    </div>
-    <script>
-        // Lunar lander for MVS 3.8 and anything else
-        // copyright 2024 by moshix
-        // v 0.1 humble beginnings
-        // v 0.2 add metrics
-        // v 0.3 earth
-        // v 0.4 mcdonalds
-        // v 0.5 crash detection
-        // v 0.6 sound!
-        // v 0.7 plume
-        // v 0.8 lateral flying
-        // v 0.9 Boss key, pause and restart
-        // v 1.0 first half-way usable game
-        // v 1.01 crash detection fix and version update
-        // v 1.02 earth and sun (with no gravity pull)
-        // v 1.03 speed detection at landing
-        // v 1.04 mountains 
-        // v 1.05 stars in background about 120
-        // v 1.06 change physics and lateral movement
-        // v 1.07 Controls legend on the right and altitude bar far right
-        // v 1.08 mountain crash zones and double altitude start
-        // v 1.09 updated fuel, mountain appearance, and UI enhancements
-        // v 1.10 3D-like lunar surface and further UI adjustments
-        // v 1.11 removed arches, improved 3D surface, fixed sound, less pointy mountains
-        // v 1.12 fix game physics
-        // v 1.13 fix game restart and crash detection
-        // v 1.14 handle restart logic better (still sound not working...)
-        // v 1.15 crash sound
-        // v 1.16 change svg of lander upon crash
-        // v 1.17 enable eagle has landed sound upon successful landing
-        // v 1.18 web visit counter seeyoufarm
-	// v 1.19 craters!
-	// v 1.20 asteroids!
-        // v 1.21 powered descent Houston checklist go/nogo
-	// v 1.22 random starting vertical height for asteroid
-	// v 1.23 no asteroid collision once landed (it's annoying)
-	// v 1.23.1 visual fixing 
-	// v 1.24 go/no-go checklist audio and points system
-	// v 1.25 mute all game sounds
-	// v 1.26 lunar gravity fix
-	// v 1.27 command module orbiting
-	// v 1.28 command correct orbiting
+  }
+}
 
-        const versionNumber = "1.28";
+createBricks();
 
-        // Set up the canvas and drawing context
-        const canvas = document.getElementById('gameCanvas');
-        const context = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+playSoundWithLimit(startSound, 800);
+let rightPressed = false;
+let leftPressed = false;
+let started = false;
+let paused = false;
+let bossKeyActive = false;
+let score = 0;
+let lives = 3;
+let message = "";
+let showMessage = false;
 
-        // Load the lander, plume, and earth images with error handling
-        const landerImg = new Image();
-        const plumeImg = new Image();
-        const earthImg = new Image();
+let speedIncreases = 0;
+let speedDecreases = 0;
+const maxSpeedAdjustments = 6;
 
-        landerImg.onload = () => console.log('lander.svg loaded successfully.');
-        landerImg.onerror = () => console.error('Error loading lander.svg.');
-        landerImg.src = 'lander.svg';
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
 
-        plumeImg.onload = () => console.log('plume.svg loaded successfully.');
-        plumeImg.onerror = () => console.error('Error loading plume.svg.');
-        plumeImg.src = 'plume.svg';
+// Touch control buttons
+const leftButton = document.getElementById("leftButton");
+const rightButton = document.getElementById("rightButton");
 
-        earthImg.onload = () => console.log('earth.svg loaded successfully.');
-        earthImg.onerror = () => console.error('Error loading earth.svg.');
-        earthImg.src = 'earth.svg';
+if (leftButton && rightButton) {
+  leftButton.addEventListener("touchstart", () => {
+    leftPressed = true;
+    if (!started) {
+      started = true;
+      draw();
+    }
+  });
+  leftButton.addEventListener("touchend", () => (leftPressed = false));
+  rightButton.addEventListener("touchstart", () => {
+    rightPressed = true;
+    if (!started) {
+      started = true;
+      draw();
+    }
+  });
+  rightButton.addEventListener("touchend", () => (rightPressed = false));
+}
 
-        const crashedLanderImg = new Image();
-        crashedLanderImg.onload = () => console.log('crashed.svg loaded successfully.');
-        crashedLanderImg.onerror = () => console.error('Error loading crashed.svg.');
-        crashedLanderImg.src = 'crashed.svg';
+function keyDownHandler(e) {
+  if (e.key == "Right" || e.key == "ArrowRight") {
+    rightPressed = true;
+  } else if (e.key == "Left" || e.key == "ArrowLeft") {
+    leftPressed = true;
+  } else if (e.key == "Q" || e.key == "q") {
+    gameOver(true);
+  } else if (e.key == "R" || e.key == "r") {
+    restartGame();
+  } else if (e.key == "+" || e.key == "=") {
+    increaseSpeed();
+  } else if (e.key == "-" || e.key == "_") {
+    decreaseSpeed();
+  } else if (e.key == "P" || e.key == "p") {
+    togglePause();
+  } else if (e.key == "B" || e.key == "b") {
+    toggleBossKey();
+  } else if (!started) {
+    started = true;
+     startTime = Date.now(); // Start the timer
+    draw();
+  }
+}
 
-	const asteroidImg = new Image();
-	asteroidImg.onload = () => console.log('asteroid.svg loaded successfully.');
-	asteroidImg.onerror = () => console.error('Error loading asteroid.svg.');
-	asteroidImg.src = 'asteroid.svg';
+function keyUpHandler(e) {
+  if (e.key == "Right" || e.key == "ArrowRight") {
+    rightPressed = false;
+  } else if (e.key == "Left" || e.key == "ArrowLeft") {
+    leftPressed = false;
+  }
+}
 
-	    
-        // Load the rocket sound with error handling
-        const rocketSound = new Audio('rocket.mp3');
-        let rocketSoundLoaded = false;
+function togglePause() {
+  paused = !paused;
+  if (!paused) {
+    draw();
+  } else {
+    ctx.font = "48px Arial";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText("PAUSED", canvas.width / 2 - 100, canvas.height / 2);
+  }
+}
 
-        rocketSound.oncanplaythrough = () => {
-            if (!rocketSoundLoaded) {
-                console.log('rocket.mp3 loaded successfully.');
-                rocketSoundLoaded = true;
-            }
-        };
-        rocketSound.onerror = () => console.error('Error loading rocket.mp3.');
+function toggleBossKey() {
+  const bossScreen = document.getElementById("bossScreen");
+  bossKeyActive = !bossKeyActive;
+  if (bossKeyActive) {
+    paused = true;
+    bossScreen.style.display = "block";
+  } else {
+    paused = false;
+    bossScreen.style.display = "none";
+    draw();
+  }
+}
 
-        let isRocketSoundPlaying = false; // To track if the sound is currently playing
+function increaseSpeed() {
+  if (speedIncreases < maxSpeedAdjustments) {
+    ballSpeed *= 1.1;
+    speedIncreases++;
+    adjustBallSpeed();
+  }
+}
 
-       // Load the crash sound with error handling
-       const crashSound = new Audio('crash.mp3');
-      let crashSoundLoaded = false;
-  
-       crashSound.oncanplaythrough = () => {
-           if (!crashSoundLoaded) {
-               console.log('crash.mp3 loaded successfully.');
-               crashSoundLoaded = true;
-           }
-       };
-       crashSound.onerror = () => console.error('Error loading crash.mp3.');
+function decreaseSpeed() {
+  if (speedDecreases < maxSpeedAdjustments) {
+    ballSpeed /= 1.1;
+    speedDecreases++;
+    adjustBallSpeed();
+  }
+}
 
+function adjustBallSpeed() {
+  let angle = Math.atan2(dy, dx);
+  dx = Math.sign(dx) * Math.abs(ballSpeed * Math.cos(angle));
+  dy = Math.sign(dy) * Math.abs(ballSpeed * Math.sin(angle));
+}
 
-        // load eagle has landed with error handling
-        const eaglelanded = new Audio('eaglelanded.mp3');
-        let eaglelandedsoundLoaded = false;
-        eaglelanded.oncanplaythrough = () => {
-            if (!eaglelandedsoundLoaded) {
-                console.log('eagle landed mp3 loaded successfully.');
-                eaglelandedsoundLoaded = true;
-            }
-        };
-        eaglelanded.onerror = () => console.error('Error loading eagle landed mp3');
-
-
-	// Load the gonogo sound with error handling
-	const gonogoSound = new Audio('gonogo.mp3');
-	let gonogoSoundLoaded = false;
-
-	gonogoSound.oncanplaythrough = () => {
- 	   if (!gonogoSoundLoaded) {
-   	     console.log('gonogo.mp3 loaded successfully.');
-    	    gonogoSoundLoaded = true;
-	    }
-	};
-gonogoSound.onerror = () => console.error('Error loading gonogo.mp3.');
-        
-	// load command module orbiting svg and sound
-	// ied is command module objects 
-	const iedGraphic = new Image();
-        iedGraphic.src = 'ied.svg'; // Path to hamburger
-        
-        iedGraphic.onload = function() {
-                    console.log('IED loaded');
-        };
-        
-        iedGraphic.onerror = function() {
-                    console.error('Error loading IED  graphic');
-        };
-        let iedWidth = 50 * 1.0; 
-        let iedHeight = 50 * 1.0;
-        let iedX, iedY;
-        let iedSpeed = 2.5;
-        let iedDirection = 1; // 1 for right, -1 for left
-        let iedActive = false;
-        let lastIedTime = 0;
-        const iedMinInterval = 9000; // Minimum interval in milliseconds (30 seconds)
-
-
-
-
-
-        // mute false or true
-	let mute = true; // sound is on by default
-	
-	    
-        // ------------ Define game constants --------------------
-        const gravity = 0.040; // moon gravity should be 0.05....
-        const thrustPower = -0.19; // changed from 0.15
-        const lateralThrustPower = 0.10; // Thrust for lateral movement
-        const fuelConsumptionRate = 0.37; // 
-        const initialFuel = 45; // starting fuel, half the previous amount
-        const landerSize = 0.380;
-        let fuel = initialFuel;
-        let landed = false;
-        let paused = false;
-        let showingBossScreen = false;
-        let message = "";
-        let landingMetrics = "";
-	let rocketSoundTimeout;
-	let points = 0;
-	let npoints = 0;
-
-	let asteroid = null;
-	let asteroidSpawnTimeout;
-
-
-        // Earth position, set once per game start
-        let earthPosition = { x: 0, y: 0 };
-
-        // Boss screen element
-        const bossScreenElement = document.getElementById('bossScreen');
-        const legendElement = document.getElementById('legend');
-
-        // Initialize the lander object with properties
-        let lander = {
-            x: canvas.width / 2,
-            y: 200, // Starting at double the previous starting altitude
-            vx: 0,
-            vy: 0,
-            rotation: 0,
-            thrusting: false,
-            crashed: false // New property to track crash state
-        };
-
-        // Lunar surface properties, including mountain areas
-        let lunarSurface = [];
-        const surfaceHeight = 30; // Height of the gray moon area was 100
-        let mountainZones = []; // Store the ranges of mountain zones
-
-        // Starfield data
-        const stars = [];
-
-        // Create a simple lunar surface with gently sloping hills and at least 50% flat surfaces
-        function createLunarSurface() {
-            lunarSurface = [];
-            let x = 0;
-            let totalWidth = 0;
-            let flatSurfaceWidth = 0;
-        
-            while (x < canvas.width) {
-                const width = Math.random() * 50 + 50;
-                let height = Math.random() * 50 + 10; // Gentle hills
-                let nextHeight = Math.random() * 50 + 10;
-        
-                if (Math.random() < 0.5) { // 50% chance for flat surface
-                    height = nextHeight = 0;
-                    flatSurfaceWidth += width;
-                }
-        
-                lunarSurface.push({ x, width, height, nextHeight });
-                x += width;
-                totalWidth += width;
-            }
-        
-            // Ensure at least 50% of the surface is flat
-            if (flatSurfaceWidth < totalWidth / 2) {
-                createLunarSurface();
-            }
+function collisionDetection() {
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      let b = bricks[c][r];
+      if (b.status == 1) {
+        if (
+          x > b.x &&
+          x < b.x + brickWidth &&
+          y > b.y &&
+          y < b.y + brickHeight
+        ) {
+          dy = -dy;
+          b.status = 0;
+          score += (brickRowCount - r) * 100;
+          // make a short sound so that it can play for repetive collions
+          playSoundWithLimit(brickHitSound, 160); // Play sound for 200 ms
+          if (allBricksCleared()) {
+            gameWon();
+          }
         }
+      }
+    }
+  }
+}
 
-	// Function to spawn an asteroid at a random time
-	function spawnAsteroid() {
-	    if (!asteroid) { // Only spawn a new asteroid if there isn't one already
-	        const startX = Math.random() < 0.5 ? 0 : canvas.width;
-	        const startY = Math.random() * (canvas.height / 2);
-	        const targetX = startX === 0 ? canvas.width : 0;
-	        const targetY = canvas.height;
-	
-	        asteroid = {
-	            x: startX,
-	            y: startY,
-	            vx: (targetX - startX) / canvas.height * 2,
-	            vy: 2, // Asteroid speed
-	            width: 50,
-	            height: 50
-	        };
-	    }
-	
-	    // Schedule the next asteroid spawn
-	    asteroidSpawnTimeout = setTimeout(spawnAsteroid, Math.random() * 9000 + 3000);
-	}
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+  ctx.fillStyle = "#0095DD";
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawBricks() {
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      if (bricks[c][r].status == 1) {
+        let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+        let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+        bricks[c][r].x = brickX;
+        bricks[c][r].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        ctx.fillStyle = getColorForRow(r);
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+  }
+}
+
+function getColorForRow(row) {
+  switch (row) {
+    case 0:
+      return "#FF0000"; // Red for top layer
+    case 1:
+      return "#FF4500"; // Orange for second layer
+    case 2:
+      return "#FFA500"; // Orange for middle layer
+    case 3:
+      return "#FFD700"; // Yellow for fourth layer
+    case 4:
+      return "#FFFF00"; // Yellow for bottom layer
+  }
+}
+
+function drawScore() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText("Score: " + score + "  Speed: " + ballSpeed.toFixed(2), 8, 20); // Show ball speed next to score
+}
+
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "left"; // Align text to the left
+//  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+  ctx.fillText("Lives: " + lives + "  Time: " + elapsedTime.toFixed(2) + "s", canvas.width - 200, 20);
+}
+
+function drawMessage() {
+  if (showMessage) {
+    const messageParts = message.split(" ");
+    const colors = ["red", "orange", "yellow"];
+    const fontSize = 24;
+    ctx.font = `${fontSize}px Arial`;
+    let offsetX = 100;
+    messageParts.forEach((part, index) => {
+      ctx.fillStyle = colors[index % colors.length];
+      ctx.fillText(part, offsetX, canvas.height / 2);
+      offsetX += ctx.measureText(part).width + 10;
+    });
+  }
+}
+
+function drawWalls() {
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, canvas.height);
+  ctx.moveTo(canvas.width, 0);
+  ctx.lineTo(canvas.width, canvas.height);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"; // Subdued color
+  ctx.lineWidth = 2; // Thin line
+  ctx.stroke();
+}
+
+function drawControls() {
+ playSoundWithLimit(startSound, 1300);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "24px Arial";
+    ctx.fillStyle = "cyan";
+  ctx.fillText("S to start", canvas.width / 2 - 80, canvas.height / 2);          
+  ctx.fillStyle = "red";
+  ctx.fillText("Q to quit", canvas.width / 2 - 80, canvas.height / 2 + 30 );
+  ctx.fillStyle = "yellow";
+  ctx.fillText("R to restart", canvas.width / 2 - 80, canvas.height / 2 + 60);
+  ctx.fillStyle = "cyan"; // Change color from green to cyan
+  ctx.fillText("+ to speed up", canvas.width / 2 - 80, canvas.height / 2 + 90);
+  ctx.fillText("- to slow down", canvas.width / 2 - 80, canvas.height / 2 + 120);
+  ctx.fillStyle = "white";
+  ctx.fillText(
+    "P to pause/resume",
+    canvas.width / 2 - 80,
+    canvas.height / 2 + 150,
+  );
+  ctx.fillText(
+    "B for boss key",
+    canvas.width / 2 - 80,
+    canvas.height / 2 + 180,
+  );
+  ctx.fillStyle = "#A7C7E7";
+  ctx.fillText(
+    "Hotdog, burgers and IBM for more points",
+    canvas.width / 2 - 80,
+    canvas.height / 2 + 210,
+  );
+  ctx.fillStyle = "#FF00FF"; // Bright purple color
+  ctx.fillText("(c) 2024 by hotdog studios", canvas.width / 2 - 80, canvas.height / 2 + 270);
+}
+
+function draw() {
+  if (paused || bossKeyActive) {
+    return;
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawWalls(); // Draw the walls
+  drawBricks();
+  drawBall();
+  drawPaddle();
+  drawScore();
+  drawLives();
+  drawMessage();
+  drawGraphic();  // Draw the hotdog
+  drawBurger();   // Draw the burger
+  drawIed();      // Draw the IED
+  drawHousefly(); // Draw the housefly
+  collisionDetection();
+  checkGraphicCollision(); // Check for collisions with the hotdog
+  checkBurgerCollision();  // and the burger
+  checkIedCollision();
+  moveGraphic(); // Move the hotdog
+  moveBurger();  // move the burger
+  moveIed();
+  moveHousefly(); // Move the housefly
+
+  if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+    dx = -dx;
+  }
+  if (y + dy < ballRadius) {
+    dy = -dy;
+  } else if (y + dy > canvas.height - ballRadius) {
+    if (x > paddleX && x < paddleX + paddleWidth) {
+       handleBallPaddleCollision();
+       paddleHitSound.play(); // Play sound when the ball hits the paddle
+    } else {
+      lives--;
+      playSoundWithLimit(ballGoneSound,700); // ball lost
+      if (lives <= 0) {
+        gameOver(false);
+      } else {
+        resetBall();
+        paddleX = (canvas.width - paddleWidth) / 2;
+        message = "You just lost one ball";
+        showMessage = true;
+        setTimeout(() => {
+          showMessage = false;
+        }, 2000);
+      }
+    }
+  }
+// this is in the wrong place!! It should be in the above check of ball trajectory!
+  if (rightPressed && paddleX < canvas.width - paddleWidth) {
+    paddleX += 8;
+  } else if (leftPressed && paddleX > 0) {
+    paddleX -= 8;
+  }
+
+  x += dx;
+  y += dy;
+
+  if (started) {
+    elapsedTime = (Date.now() - startTime) / 1000; // Update elapsed tim
+    activateGraphic();  // Randomly activate the hotdog
+    activateBurger();   // Randomly activate the burger
+    activateIed();
+    activateHousefly(); // Check and activate the housefly
+    requestAnimationFrame(draw);
+  }
+}
+
+function resetBall() {
+  x = canvas.width / 2;
+  y = canvas.height - 30;
+  dx = ballSpeed;
+  dy = -ballSpeed;
+  setRandomInitialDirection(); // Set a random initial direction for the ball
+}
+
+function handleBallPaddleCollision() {
+  // Reverse the vertical direction
+  dy = -dy;
+
+  // Calculate the hit position relative to the center of the paddle
+  let hitPos = (x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+
+  // Add a slight horizontal deflection based on the hit position
+  dx += hitPos * 0.2;
+
+  // Prevent perfectly vertical movement
+  if (Math.abs(dx) < 0.1) {
+    dx = dx < 0 ? -0.1 : 0.1;
+  }
+}
+
+function submitScore(player, score) {
+ 
+}
+
+function gameOver(quit) {
+  elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds	
+  playSoundWithLimit(lostSound,2000);
+  submitScore("Player1", score); // Replace "Player1" with actual player identifier
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "48px Arial";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center"; // Center align text
+  ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 50);
+  ctx.fillStyle = "CYAN";
+  ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2);
+  ctx.fillStyle = "ORANGE";
+  ctx.fillText("Time: " + elapsedTime.toFixed(2) + "s", canvas.width / 2, canvas.height / 2 + 50);
+  ctx.fillStyle = "RED";
+   ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 + 100);
+   if (quit) {
+       ctx.fillText("QUIT", canvas.width / 2, canvas.height / 2 + 150);
+    }
+  started = false;
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
+}
+
+// Function to play sound with limited duration
+function playSoundWithLimit(audioElement, duration) {
+    audioElement.pause();
+    audioElement.currentTime = 0; // Reset to start
+    audioElement.play().then(() => {
+        setTimeout(() => {
+            audioElement.pause();
+            audioElement.currentTime = 0; // Reset to start
+        }, duration);
+    }).catch((error) => {
+        console.error('Error playing audio:', error);
+    });
+}
 
 
-	    // Function to move the asteroid
-	function moveAsteroid() {
-	    if (asteroid) {
-	        asteroid.x += asteroid.vx;
-	        asteroid.y += asteroid.vy;  
-	
-	        // Check for collision with the lander
-	        if ( !landed && 
-	            asteroid.x < lander.x + landerImg.width * landerSize / 2 &&
-	            asteroid.x + asteroid.width > lander.x - landerImg.width * landerSize / 2 &&
-	            asteroid.y < lander.y + landerImg.height * landerSize / 2 &&
-	            asteroid.y + asteroid.height > lander.y - landerImg.height * landerSize / 2
-	        ) {
-	   	    lander.crashed = true;
-                    if (crashSoundLoaded && mute) {
-                        crashSound.volume = 0.4;
-                        crashSound.play();
-                    }
-	            landed = true;
-		     points = 0;	
-	            //asteroid = null; // Remove the asteroid
-	        }
-	
-	        // Remove the asteroid if it goes out of bounds
-	        if (asteroid.y > canvas.height) {
-	            asteroid = null;
-	        }
-	    }
-	}
-	
-	// Function to draw the asteroid
-	function drawAsteroid() {
-	    if (asteroid) {
-	        context.drawImage(asteroidImg, asteroid.x, asteroid.y, asteroid.width, asteroid.height);
-	    }
-	}
+//player finished the game
+function gameWon() {
+  playSoundWithLimit(finishedSound, 1000);       // Play sound when the ball hits the paddle
+  submitScore("Player1", score);                 // Replace "Player1" with actual player identifier
+  elapsedTime = (Date.now() - startTime) / 1000; // Calculate elapsed time in seconds
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "48px Arial";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center"; 
+  ctx.fillText("CONGRATS! You finished!", canvas.width / 2, canvas.height / 2 - 50);
+  ctx.fillStyle = "ORANGE";
+  ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2);
+  ctx.fillStyle = "CYAN";
+  ctx.fillText("Time: " + elapsedTime.toFixed(2) + "s", canvas.width / 2, canvas.height / 2 + 50);
+  ctx.fillStyle = "RED";
+  ctx.fillText("Press R to restart", canvas.width / 2, canvas.height / 2 + 100);
+  started = false;
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
+}
 
 
-	    // Reload the lander image to reset its state
-	   function reloadImages() {
-    		landerImg.src = 'lander.svg';
-    		//crashedImg.src = 'crashed.svg';
-    		asteroidImg.src = 'asteroid.svg';
-	   }
 
-	    // Helper function to check if an image is loaded
-	   function isImageLoaded(img) {
-    	     return img.complete && img.naturalHeight !== 0;
-            }		
+// Function to set a random initial direction for the ball
+function setRandomInitialDirection() {
+    const angle = Math.random() * Math.PI / 1.7 + Math.PI / 4.2; // Random angle between 27 and 135 degrees
+    dx = ballSpeed * Math.cos(angle);
+    dy = -ballSpeed * Math.sin(angle);
+}
 
 
-	    // Draw the lunar surface on the canvas with gently sloping hills and flat surfaces
-           function drawLunarSurface() {
-               context.fillStyle = 'gray';
-               context.beginPath();
-               context.moveTo(0, canvas.height - surfaceHeight);
-           
-               lunarSurface.forEach((segment) => {
-                   const peakY = canvas.height - surfaceHeight - segment.height;
-                   const nextPeakY = canvas.height - surfaceHeight - segment.nextHeight;
-                   const nextX = segment.x + segment.width;
-           
-                   context.lineTo(segment.x, peakY);
-                   context.quadraticCurveTo(segment.x + segment.width / 2, peakY, nextX, nextPeakY);
-               });
-           
-               context.lineTo(canvas.width, canvas.height);
-               context.lineTo(0, canvas.height);
-               context.closePath();
-               context.fill();
-           }
-           
-           // Get the height of the lunar surface at a specific x position
-           function getTerrainHeightAt(x) {
-               for (let i = 0; i < lunarSurface.length - 1; i++) {
-                   const segment = lunarSurface[i];
-                   const nextSegment = lunarSurface[i + 1];
-                   
-                   if (x >= segment.x && x <= segment.x + segment.width) {
-                       // Linear interpolation to find the y position
-                       const t = (x - segment.x) / segment.width;
-                       return segment.height * (1 - t) + nextSegment.height * t;
-                   }
-               }
-               return 0; // Default height if out of bounds
-           }
-           
-           
-           
-                   // Create static stars in the background
-                   function createStars() {
-                           conditionalGonogo(); // each time we start let's randomly play go/no-go checklist 
-           		for (let i = 0; i < 120; i++) {
-                           stars.push({
-                               x: Math.random() * canvas.width,
-                               y: Math.random() * (canvas.height - surfaceHeight),
-                               radius: Math.random() * 1.5,
-                           });
-                       }
-                   }
-           
-            // Draw stars in the background
-            function drawStars() {
-                context.fillStyle = 'white';
-                stars.forEach((star) => {
-                    context.beginPath();
-                    context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    context.fill();
-                });
-            }
-    
-        // Draw Earth at the stored position
-        function drawEarth() {
-            const earthWidth = 150; // Double the size of the previous width
-            const earthHeight = 150; // Double the size of the previous height
-            context.drawImage(earthImg, earthPosition.x, earthPosition.y, earthWidth, earthHeight);
+
+
+// hotdog drawing
+function drawGraphic() {
+    if (graphicActive) {
+  //      console.log('Drawing HOTDOG at:', graphicX, graphicY, graphicWidth, graphicHeight);
+        ctx.drawImage(flyingGraphic, graphicX, graphicY, graphicWidth, graphicHeight);
+    }
+}
+
+
+function activateGraphic() {
+    if (allBricksCleared()) return;
+
+    const currentTime = Date.now();
+    if (currentTime - lastGraphicTime >= graphicMinInterval) {
+        graphicActive = true;
+        lastGraphicTime = currentTime; // Update last activation time
+        graphicY = canvas.height / 2; // Set Y position to the middle
+        if (Math.random() < 0.5) {
+            graphicX = -graphicWidth; // Start from the left
+            graphicDirection = 1;
+        } else {
+            graphicX = canvas.width; // Start from the right
+            graphicDirection = -1;
         }
+    }
+}
 
-        // Set Earth position randomly above the surface of the moon
-        function setEarthPosition() {
-            const earthWidth = 100;
-            const earthHeight = 200;
-            const minX = 350; // Minimum X position to avoid the metrics area
-            const maxX = canvas.width - earthWidth - 100; // Avoid the right edge
-            const minY = 50; // Minimum Y position to avoid the controls area
-            const maxY = canvas.height - surfaceHeight - earthHeight - 50; // Above the lunar surface
-            earthPosition.x = Math.random() * (maxX - minX) + minX;
-            earthPosition.y = Math.random() * (maxY - minY) + minY;
+function moveGraphic() {
+    if (graphicActive) {
+        graphicX += graphicSpeed * graphicDirection;
+        if (graphicDirection === 1 && graphicX > canvas.width) {
+            graphicActive = false;
+        } else if (graphicDirection === -1 && graphicX < -graphicWidth) {
+            graphicActive = false;
         }
+    }
+}
 
-        // Draw the lander and its plume if thrusting
-        // show crashed.svg if crashed 
-        function drawLander() {
-            context.save();
-            context.translate(lander.x, lander.y);
-            context.rotate(lander.rotation);
-            context.scale(landerSize * 0.8, landerSize * 0.8); // scale it down 20%
-
-            // Draw the appropriate lander image
-            if (lander.crashed) {
-                context.scale(landerSize * 2.7, landerSize * 2.7); // Scale the crashed lander image 
-                context.drawImage(crashedLanderImg, -crashedLanderImg.width, -crashedLanderImg.height);
-            } else {
-                context.drawImage(landerImg, -landerImg.width / 2, -landerImg.height / 2);
-            }
-
-            // Draw the plume more to the left under the lander if thrusting
-            if (lander.thrusting && fuel > 0 && !lander.crashed) {
-                const plumeScale = 0.15; // Increased by 50%
-                context.save();
-                context.translate(-30, landerImg.height / 2); // Further to the left
-                context.scale(plumeScale, plumeScale);
-                context.drawImage(plumeImg, -plumeImg.width / 2, 0);
-                context.restore();
-            }
-
-            context.restore();
-        }
+// are we hitting the hotdog ?
+function checkGraphicCollision() {
+    if (graphicActive && 
+        x > graphicX && 
+        x < graphicX + graphicWidth && 
+        y > graphicY && 
+        y < graphicY + graphicHeight) {
+        dy = -dy; // Deflect the ball
+        playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+        score +=  500
+    }
+}
 
 
-        // Update the lander's position and velocity
-        function updateLander() {
-            if (lander.thrusting && fuel > 0) {
-                lander.vy += thrustPower * Math.cos(lander.rotation);
-                lander.vx += lateralThrustPower * Math.sin(lander.rotation);
-                fuel -= fuelConsumptionRate;
-            }
-            lander.vy += gravity;
-            lander.y += lander.vy;
-            lander.x += lander.vx;
 
-            // Ensure the lander stays within canvas bounds
-            if (lander.x < 0) lander.x = 0;
-            if (lander.x > canvas.width) lander.x = canvas.width;
+function activateHousefly() {
+    if (allBricksCleared()) return;
 
-            // Check if the lander has landed on the lunar surface
-            const groundY = canvas.height - surfaceHeight;
-            if (lander.y > groundY) {
-                lander.y = groundY;
+    const currentTime = Date.now();
+    if (currentTime - lastHouseflyTime >= houseflyMinInterval) {
+        houseflyActive = true;
+        houseflyFlightPath = generateSmoothFlightPath();
+        houseflyFlightIndex = 0;
+        const initialPoint = houseflyFlightPath[houseflyFlightIndex];
+        houseflyX = initialPoint.x;
+        houseflyY = initialPoint.y;
+        lastHouseflyTime = currentTime; // Update last activation time
+//        console.log('Housefly activated at:', houseflyX, houseflyY); // Log the initial position
 
-                // Store the metrics at the time of landing, so they don't overwrite
-                const landingVerticalSpeed = lander.vy;
-                const landingHorizontalSpeed = lander.vx;
-                const landingFuelRemaining = Math.abs(fuel);
-		    
-		// points is ( max landing speed of 2.5 - real landing speed ) * fuel remaining -- absolute values   
-		npoints = ~~(((2.5 -  Math.abs(landingVerticalSpeed)) *  (landingFuelRemaining+1) * 100));    
-                points = Math.abs(npoints);
-		    
-                if (!landed) {
-                    landed = true;
-		// Determine the terrain height at the lander's x position
-              const terrainHeight = getTerrainHeightAt(lander.x);
-              const landerTerrainY = canvas.height - surfaceHeight - terrainHeight;
+        // Play the housefly sound
+        houseflySound.currentTime = 0; // Reset sound to start
+        houseflySound.loop = true; // Loop the sound
+        houseflySound.play().then(() => {
+            // console.log('Housefly sound playing');
+        }).catch((error) => {
+            console.error('Error playing housefly sound:', error);
+        });
 
-             // Determine if the lander is on a hill
-              const isOnHill = terrainHeight > 0;
+        // Stop the housefly sound and deactivate the housefly after houseflyDuration
+        setTimeout(() => {
+            houseflySound.pause();
+            houseflyActive = false;
+            // console.log('Housefly sound paused and housefly deactivated after', houseflyDuration / 1000, 'seconds');
+        }, houseflyDuration);
+    }
+}
 
-                    // Check for crash based on vertical and horizontal speeds or if landed in a mountain zone
-                    if (lander.y > landerTerrainY || isOnHill) {
-                        message = "You crashed into a lunar crater"
-                        lander.crashed = true;
-			points = 0;    
-                        if (crashSoundLoaded && mute) {
-                            crashSound.volume = 0.4;
-                            crashSound.play();
-                          }
-                    } else if (Math.abs(landingVerticalSpeed) > 2.6 || Math.abs(landingHorizontalSpeed) > 2) {
-                        message = "You crashed because of vertical or lateral speed"
-                        lander.crashed = true;
-			points = 0;    
-                        if (crashSoundLoaded && mute) {
-                                crashSound.volume = 0.4;
-                                crashSound.play();
-                         }
-                    } else {
-                        message = "  Successful Landing!";
-                        if (eaglelandedsoundLoaded && mute) {
-                            eaglelanded.volume = 0.2;
-                            eaglelanded.play();
-                          }
-                    }
+function moveHousefly() {
+    if (houseflyActive) {
+        houseflyFrameCount++;
+        if (houseflyFrameCount % houseflyFrameDelay === 0) { // Move every houseflyFrameDelay frames for smoother movement
+            if (houseflyFlightIndex < houseflyFlightPath.length) {
+                const target = houseflyFlightPath[houseflyFlightIndex];
+                const dx = target.x - houseflyX;
+                const dy = target.y - houseflyY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
 
+                // Calculate the angle of movement
+                houseflyAngle = Math.atan2(dy, dx);
 
-                
-                    landingMetrics = `
-                        Horizontal Speed: ${landingHorizontalSpeed.toFixed(2)} m/s\n
-                        Vertical Speed: ${landingVerticalSpeed.toFixed(2)} m/s\n
-                        Fuel Remaining: ${landingFuelRemaining.toFixed(2)} units \n
-			Points: ${points}
-                    `;
-                }
-
-                // Stop the lander's movement 
-                lander.vx = 0;
-                lander.vy = 0;
-            }
-
-            // Update UI elements with the latest data
-            document.getElementById('horizontal-speed').textContent = lander.vx.toFixed(2);
-            document.getElementById('vertical-speed').textContent = landed ? '0.00' : lander.vy.toFixed(2);
-            document.getElementById('height').textContent = (groundY - lander.y).toFixed(2);
-            document.getElementById('fuel').textContent = fuel.toFixed(2);
-            document.getElementById('fuel-consumption').textContent = lander.thrusting ? fuelConsumptionRate.toFixed(2) : '0';
-        }
-
-        // Draw the landing result message and metrics
-        function drawMessage() {
-            if (message) {
-                context.fillStyle = message === "Successful Landing!" ? 'yellow' : 'orange';
-                context.font = '30px Arial';
-                context.textAlign = 'center';
-                context.fillText(message, canvas.width / 2 - 25, canvas.height / 2);
-
-                context.font = '20px Arial';
-                context.textAlign = 'left';
-                // Split the landing metrics into separate lines and left-align
-                const metricsLines = landingMetrics.trim().split('\n');
-                metricsLines.forEach((line, index) => {
-                    context.fillText(line.trim(), canvas.width / 2 - 150, canvas.height / 2 + 40 + index * 30);
-                });
-            }
-
-            // Show "Paused" message if the game is paused
-            if (paused && !showingBossScreen) {
-                context.fillStyle = 'white';
-                context.font = '30px Arial';
-                context.textAlign = 'center';
-                context.fillText("Paused", canvas.width / 2, canvas.height / 2 - 50);
-            }
-        
-            // Show "muted" message if the game is muted
-            if (!mute && !showingBossScreen) {
-                context.fillStyle = 'white';
-                context.font = '30px Arial';
-                context.textAlign = 'center';
-                context.fillText("Muted", canvas.width / 2, canvas.height / 2 - 280);
-            }
-
-         if (mute && !showingBossScreen) {
-                context.fillStyle = 'white';
-                context.font = '30px Arial';
-                context.textAlign = 'center';
-                context.fillText("     ", canvas.width / 2, canvas.height / 2 - 280);
-            }
-
-        }
-
-        //@@@@@command module stuff @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        // IED handling (orbiting command module)
-        
-        function activateIed() {
-        
-            const currentTime = Date.now();
-            if (currentTime - lastIedTime >= iedMinInterval) {
-                iedActive = true;
-                lastIedTime = currentTime; // Update last activation time
-                iedY = canvas.height / 8; // Set Y position quarter
-                if (Math.random() < 0.5) {
-                    iedX = -iedWidth; // Start from the left
-                    iedDirection = 1;
+                // Ensure speed affects the movement directly
+                if (distance > houseflySpeed) {
+                    houseflyX += (dx / distance) * houseflySpeed;
+                    houseflyY += (dy / distance) * houseflySpeed;
                 } else {
-                    iedX = canvas.width; // Start from the right
-                    iedDirection = 1;
+                    houseflyX = target.x;
+                    houseflyY = target.y;
+                    houseflyFlightIndex++;
                 }
-            }
-        }
-
-
-          // graphics related to animating command module orbiting
-          function moveIed() {
-              if (iedActive) {
-                  iedX += iedSpeed * iedDirection;
-                  if (iedX > canvas.width || iedX < -iedWidth) {
-                      iedActive = false; // Deactivate the ied
-                  }
-              }
-          }
-          
-          
-          // 
-          function drawIed() {
-              if (iedActive) {
-                  //console.log('Drawing ied  at:', iedX, iedY, iedWidth, iedHeight);
-                  context.drawImage(iedGraphic, iedX, iedY, iedWidth, iedHeight);
-              }
-          }
-         // Function to play sound with limited duration
-         function playSoundWithLimit(audioElement, duration) {
-             audioElement.pause();
-             audioElement.currentTime = 0; // Reset to start
-             audioElement.play().then(() => {
-                 setTimeout(() => {
-                     audioElement.pause();
-                     audioElement.currentTime = 0; // Reset to start
-                 }, duration);
-             }).catch((error) => {
-                 console.error('Error playing audio:', error);
-             });
-         }
-
-        // Draw the descent indicator on the right side
-        function drawDescentIndicator() {
-            const indicatorX = canvas.width - 50;
-            const indicatorTop = 50;
-            const indicatorBottom = canvas.height - 150;
-            const indicatorHeight = indicatorBottom - indicatorTop;
-
-            // Draw the line
-            context.strokeStyle = 'white';
-            context.lineWidth = 2;
-            context.beginPath();
-            context.moveTo(indicatorX, indicatorTop);
-            context.lineTo(indicatorX, indicatorBottom);
-            context.stroke();
-
-            // Draw the red dot representing the lander's position
-            const landerPosition = Math.min(Math.max((lander.y / (canvas.height - surfaceHeight)) * indicatorHeight, 0), indicatorHeight);
-            context.fillStyle = 'red';
-            context.beginPath();
-            context.arc(indicatorX, indicatorTop + landerPosition, 5, 0, Math.PI * 2);
-            context.fill();
-        }
-
-        // Clear the canvas and redraw all elements
-        function draw() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (showingBossScreen) {
-                bossScreenElement.style.display = 'block';
+ //               console.log('Housefly moving to:', houseflyX, houseflyY, 'Angle:', houseflyAngle); // Log the updated position and angle
             } else {
-                bossScreenElement.style.display = 'none';
-                drawStars();
-                drawEarth();
-                drawLunarSurface();
-                drawLander();
-		drawAsteroid(); // Draw the asteroid
-                drawMessage();
-		drawIed(); // draw the command module
-                drawDescentIndicator();
+                houseflyActive = false; // Deactivate the housefly when it completes the flight path
+                houseflySound.pause();
+  //              console.log('Housefly sound paused and housefly deactivated');
             }
         }
+    }
+}
 
-        // Main game loop to update and render the game state
-        function gameLoop() {
-            if (!paused && !showingBossScreen) {
-                updateLander();
-		spawnAsteroid(); // Start spawning asteroids    
-		drawIed();
-		activateIed();
-	        moveAsteroid();
-	        moveIed();       // animate the command module
-            }
-            draw();
-            requestAnimationFrame(gameLoop);
+
+function generateSmoothFlightPath() {
+    const path = [];
+    const numPoints = 100; // Number of points in the path
+    const amplitude = 50; // Amplitude of the sine wave
+    const frequency = 0.1; // Frequency of the sine wave
+    let startX = Math.random() * canvas.width;
+    let startY = Math.random() * canvas.height;
+    
+    for (let i = 0; i < numPoints; i++) {
+        const x = startX + i * 10;
+        const y = startY + amplitude * Math.sin(frequency * i);
+        path.push({ x: x % canvas.width, y: (y % canvas.height + canvas.height) % canvas.height });
+    }
+    
+//    console.log('Generated housefly path:', path); // Log the generated path
+    return path;
+}
+
+
+
+function drawHousefly() {
+    if (houseflyActive) {
+//        console.log('Drawing housefly at:', houseflyX, houseflyY, houseflyWidth, houseflyHeight);
+
+        ctx.save(); // Save the current context state
+        ctx.translate(houseflyX, houseflyY); // Move the origin to the housefly's position
+        ctx.rotate(houseflyAngle); // Rotate the context to the housefly's angle
+        ctx.drawImage(houseflyGraphic, -houseflyWidth / 2, -houseflyHeight / 2, houseflyWidth, houseflyHeight); // Draw the housefly centered at the new origin
+        ctx.restore(); // Restore the context to its original state
+    }
+}
+
+
+//burger graphics here DONE!
+
+function activateBurger() {
+    if (allBricksCleared()) return; //don't draw if game over
+
+    const currentTime = Date.now();
+    if (currentTime - lastBurgerTime >= burgerMinInterval) {
+        burgerActive = true;
+        lastBurgerTime = currentTime; // Update last activation time
+        burgerY = canvas.height / 3; // Set Y position quarter
+        if (Math.random() < 0.5) {
+            burgerX = -burgerWidth; // Start from the left
+            burgerDirection = 1;
+        } else {
+            burgerX = canvas.width; // Start from the right
+            burgerDirection = -1;
         }
+    }
+}
 
-        // Handle keyboard input for controlling the game
-        document.addEventListener('keydown', (e) => {
-            if (showingBossScreen) {
-                // Allow exiting boss screen
-                if (e.key === 'B' || e.key === 'b') {
-                    showingBossScreen = false;
-                    paused = false;
-                }
-                return;
+// burger moving  DONE!
+
+function moveBurger() {
+
+    if (burgerActive) {
+        burgerX += burgerSpeed * burgerDirection;
+        if (burgerX > canvas.width || burgerX < -burgerWidth) {
+            burgerActive = false; // Deactivate the burger
+        }
+    }
+}
+
+
+// burger DONE!
+function drawBurger() {
+    if (burgerActive) {
+       // console.log('Drawing burger  at:', burgerX, burgerY, burgerWidth, burgerHeight);
+        ctx.drawImage(burgerGraphic, burgerX, burgerY, burgerWidth, burgerHeight);
+    }
+}
+
+//hitting a burger?? DONE!
+function checkBurgerCollision() {
+    if (burgerActive && 
+        x > burgerX && 
+        x < burgerX + burgerWidth && 
+        y > burgerY && 
+        y < burgerY + burgerHeight) {
+        dy = -dy; // Deflect the ball
+        playSoundWithLimit(foodSound, 270); // Play sound for 260 ms
+        score +=  750  
+    }
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// IED
+
+function activateIed() {
+    if (allBricksCleared()) return; //don't draw if game over
+
+    const currentTime = Date.now();
+    if (currentTime - lastIedTime >= iedMinInterval) {
+        iedActive = true;
+        lastIedTime = currentTime; // Update last activation time
+        iedY = canvas.height / 8; // Set Y position quarter
+        if (Math.random() < 0.5) {
+            iedX = -iedWidth; // Start from the left
+            iedDirection = 1;
+        } else {
+            iedX = canvas.width; // Start from the right
+            iedDirection = -1;
+        }
+    }
+}
+
+
+
+function moveIed() {
+
+    if (iedActive) {
+        iedX += iedSpeed * iedDirection;
+        if (iedX > canvas.width || iedX < -iedWidth) {
+            iedActive = false; // Deactivate the ied
+        }
+    }
+}
+
+
+// 
+function drawIed() {
+    if (iedActive) {
+        //console.log('Drawing ied  at:', iedX, iedY, iedWidth, iedHeight);
+        ctx.drawImage(iedGraphic, iedX, iedY, iedWidth, iedHeight);
+    }
+}
+
+//hitting an IED??
+function checkIedCollision() {
+    if (iedActive &&
+        x > iedX &&
+        x < iedX + iedWidth &&
+        y > iedY &&
+        y < iedY + iedHeight) {
+        dy = -dy; // Deflect the ball
+        playSoundWithLimit(iedSound, 2400); 
+        removeTopMostRow(); // Remove the top row of bricks
+        score +=  20000
+    }
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+//---------------------------------------------------------------------
+function allBricksCleared() {
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+            if (bricks[c][r].status == 1) {
+                return false;
             }
-
-            if (!landed && !paused) {
-                switch (e.key) {
-                    case 'ArrowUp':
-                    case 'ArrowLeft':
-                    case 'ArrowRight':
-                        // Play the rocket sound for 0.3 seconds if not already playing
-                        if (!isRocketSoundPlaying && rocketSoundLoaded && mute) {
-                            isRocketSoundPlaying = true;
-                            rocketSound.currentTime = 0; // Restart the sound
-                            rocketSound.volume = 0.9;
-                            rocketSound.play();
-                            rocketSoundTimeout = setTimeout(() => {
-                                rocketSound.pause();
-                                isRocketSoundPlaying = false;
-                            }, 1000); // Stop after 0.4 seconds
-                        }
-
-                        lander.thrusting = true;
-
-                        // Handle lateral movement
-                        if (e.key === 'ArrowLeft') {
-                            lander.vx -= lateralThrustPower;
-                        } else if (e.key === 'ArrowRight') {
-                            lander.vx += lateralThrustPower;
-                        }
-
-                        break;
-                }
-            }
-
-            switch (e.key) {
-	        case 'M':
-		case 'm':
-		    mute = !mute;
-		    // console.log('Mute status: ',mute);
-		    break;			
-                case 'P':
-                case 'p':
-                    paused = !paused;
-                    break;
-                case 'R':
-                case 'r':
-                    restartGame();
-                    break;
-                case 'B':
-                case 'b':
-                    showingBossScreen = !showingBossScreen;
-                    paused = showingBossScreen; // Pause the game while showing the boss screen
-                    break;
-            }
-        });
-
-        // Stop thrusting when the arrow key is released
-        document.addEventListener('keyup', () => {
-            lander.thrusting = false; // Lander stops thrusting when key is released
-        });
-
-	    
-        function conditionalGonogo(){
-           // Conditionally play the gonogo sound 1 in 4 times
-    	   if (gonogoSoundLoaded && Math.random() < 1/4 && mute) {
-        	gonogoSound.play();
-	   }
-	}
-
-	    
-        // Restart the game
-        function restartGame() {
-            conditionalGonogo()
-	    fuel = initialFuel;
-            landed = false;
-            message = "";
-            landingMetrics = "";
-            paused = false;
-            lander = {
-                x: canvas.width / 2,
-                y: 100, // altitude over moon surface
-                vx: 0,
-                vy: 0,
-                rotation: 0,
-                thrusting: false
-            };
-		
-	     // Reset the lander image to its initial state
-    	    reloadImages();
-            lunarSurface = [];
-            mountainZones = [];
-            createLunarSurface();
-	    activateIed();  // activate the command module 
-	    drawIed();
-	    moveIed();
-	    }		    
+        }
+    }
+    return true;
+}
 
 
-           // Initialize the game and start the main loop
-            setEarthPosition(); // Set a new random position for Earth
-	    spawnAsteroid(); // Start spawning asteroids
-	    activateIed();       // draw the command module
+function removeTopMostRow() {
+  if (!canRemoveTopRow) return; // Exit if the function is blocked
 
-           createStars();
-           createLunarSurface();
-           setEarthPosition(); // Set initial position for Earth
-	   drawIed();
-	   iedActive = true;
-           gameLoop();
-    </script>
-</body>
-</html>
+  canRemoveTopRow = false; // Block re-execution for 10 seconds
+  setTimeout(() => { canRemoveTopRow = true; }, 10000);
+
+  for (let c = 0; c < brickColumnCount; c++) {
+    if (bricks[c][0].status === 1) {
+      score += 750; // Add points for each brick in the top row
+    }
+    for (let r = 0; r < brickRowCount - 1; r++) {
+      bricks[c][r] = bricks[c][r + 1];
+    }
+    bricks[c][brickRowCount - 1] = { x: 0, y: 0, status: 0 }; // Clear the last row
+  }
+}
+
+function restartGame() {
+  score = 0;
+  lives = 3;
+  rightPressed = false;
+  leftPressed = false;
+  started = false;
+  ballSpeed = initialBallSpeed; // Reset ball speed
+  speedIncreases = 0;
+  speedDecreases = 0;
+  paused = false;
+  bossKeyActive = false;
+  createBricks();
+  resetBall();
+  drawControls();
+}
+
+// Set the version number dynamically
+document.getElementById("version").innerText = "Version: " + version;
+
+// Show controls before starting the game
+drawControls();
